@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Phrase → Playlist (AI)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #000000;
+    --muted: #6b6b6b;
+    --border: #000000;
+    --soft: #ededed;
+    --inv-bg: #000000;
+    --inv-fg: #ffffff;
+  }
+  [data-theme="dark"] {
+    --bg: #000000;
+    --fg: #ffffff;
+    --muted: #a3a3a3;
+    --border: #ffffff;
+    --soft: #1a1a1a;
+    --inv-bg: #ffffff;
+    --inv-fg: #000000;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', system-ui, sans-serif; }
+  body {
+    min-height: 100vh;
+    background: var(--bg); color: var(--fg);
+    display: flex; justify-content: center; align-items: flex-start;
+    padding: 18px 14px 40px;
+  }
+  .container {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    max-width: 680px; width: 100%;
+    padding: 18px;
+  }
+  header { margin-bottom: 14px; }
+  h1 { font-size: 1.15rem; letter-spacing: 0.5px; text-transform: uppercase; }
+  .subtitle { color: var(--muted); font-size: 0.75rem; margin-top: 3px; }
+
+  label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; font-weight: 700; }
+  input, textarea, select {
+    width: 100%; padding: 8px 10px; border-radius: 0;
+    border: 1.5px solid var(--border); background: var(--bg);
+    color: var(--fg); font-size: 0.85rem; outline: none;
+  }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--fg); outline-offset: 1px; }
+  textarea { resize: vertical; min-height: 54px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row > .col { flex: 1; min-width: 120px; }
+  .field { margin-bottom: 11px; }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+
+  .generate {
+    width: 100%; padding: 11px; border: 2px solid var(--border); border-radius: 0; cursor: pointer;
+    background: var(--inv-bg); color: var(--inv-fg); font-size: 0.9rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .generate:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
+  .generate:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ghost {
+    background: var(--bg); color: var(--fg); border: 1.5px solid var(--border);
+    border-radius: 0; padding: 6px 11px; cursor: pointer; font-size: 0.72rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .ghost:hover { background: var(--inv-bg); color: var(--inv-fg); }
+
+  .panel { border: 1.5px solid var(--border); border-radius: 0; padding: 11px; margin-bottom: 12px; }
+  .panel-toggle {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    cursor: pointer; user-select: none; font-weight: 700; font-size: 0.72rem;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  #advanced { margin-top: 11px; }
+  .key-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .key-row .key-enabled { width: 15px; height: 15px; flex: 0 0 auto; margin: 0; accent-color: var(--fg); }
+  .key-row .key-input { flex: 1; min-width: 0; }
+  .key-btn { flex: 0 0 auto; padding: 6px 8px; min-width: 44px; }
+  .hint { font-size: 0.68rem; color: var(--muted); margin-top: 5px; line-height: 1.45; }
+  .hint code { background: var(--soft); padding: 1px 4px; }
+
+  .status { min-height: 18px; margin: 10px 0; font-size: 0.75rem; font-weight: 700; }
+  .status.error::before { content: '[!] '; }
+  .status.ok::before { content: '[ok] '; }
+
+  .results { margin-top: 6px; }
+  .results-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    flex-wrap: wrap; margin-bottom: 8px;
+  }
+  .results-head h2 { font-size: 0.95rem; text-transform: uppercase; }
+  .results-head .actions { display: flex; gap: 6px; }
+  .meta { color: var(--muted); font-size: 0.75rem; margin-bottom: 10px; line-height: 1.45; }
+
+  ul.tracks { list-style: none; display: flex; flex-direction: column; gap: 0; border: 1.5px solid var(--border); }
+  ul.tracks li {
+    border-bottom: 1.5px solid var(--border);
+    padding: 8px 10px;
+    display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: center;
+  }
+  ul.tracks li:last-child { border-bottom: none; }
+  .track-num { font-weight: 700; font-size: 0.8rem; text-align: center; }
+  .track-title { font-weight: 700; font-size: 0.85rem; }
+  .track-artist { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+  .track-why { font-size: 0.7rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+  .track-links { display: flex; flex-direction: column; gap: 4px; }
+  .track-links a {
+    font-size: 0.65rem; text-decoration: none; color: var(--fg);
+    border: 1.5px solid var(--border); padding: 3px 8px; text-align: center;
+    font-weight: 700; text-transform: uppercase; white-space: nowrap;
+  }
+  .track-links a:hover { background: var(--inv-bg); color: var(--inv-fg); }
+
+  .empty { text-align: center; color: var(--muted); font-size: 0.75rem; padding: 18px 10px; border: 1.5px dashed var(--border); }
+
+  .footer { margin-top: 14px; display: flex; justify-content: center; gap: 8px; }
+
+  #raw-output { font-size: 0.7rem; white-space: pre-wrap; word-break: break-word; margin-top: 10px; max-height: 260px; overflow: auto; }
+
+  @media (max-width: 520px) {
+    ul.tracks li { grid-template-columns: 20px 1fr; }
+    .track-links { grid-column: 2; flex-direction: row; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Phrase → Playlist</h1>
+    <p class="subtitle">Describe a mood, moment, or vibe. AI turns it into a playlist.</p>
+  </header>
+
+  <div class="field">
+    <label for="phrase">Your phrase</label>
+    <textarea id="phrase" placeholder="e.g. rainy Sunday morning, warm coffee, no plans"></textarea>
+  </div>
+
+  <div class="row">
+    <div class="col field">
+      <label for="count">Tracks</label>
+      <select id="count">
+        <option>5</option>
+        <option selected>8</option>
+        <option>10</option>
+        <option>15</option>
+      </select>
+    </div>
+    <div class="col field">
+      <label for="era">Era / Style</label>
+      <input id="era" placeholder="any era" value="any era">
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-toggle" id="adv-toggle">
+      <span>AI Settings</span>
+      <span id="adv-arrow">▸</span>
+    </div>
+    <div id="advanced" hidden>
+      <div class="field">
+        <label>API keys</label>
+        <div id="key-list"></div>
+        <button class="ghost" id="add-key" type="button" style="margin-top:6px">+ Add key</button>
+        <p class="hint">Stored only in your browser's localStorage. Keys are tried in order, and the app rotates to the next enabled key automatically if one fails (bad key, rate limit, error). Use the checkbox to enable/disable a key.</p>
+      </div>
+      <div class="row">
+        <div class="col field">
+          <label for="baseUrl">API base URL</label>
+          <input id="baseUrl" value="/proxy">
+        </div>
+        <div class="col field">
+          <label for="model">Model</label>
+          <input id="model" value="deepseek-v4.1-flash:free">
+        </div>
+      </div>
+      <p class="hint">Default <code>/proxy</code> works when you launch the app with <code>python server.py</code> (it forwards to tokenharbor.ai and bypasses the site's missing CORS headers). For direct OpenAI, use <code>https://api.openai.com/v1</code>.</p>
+      <div class="row">
+        <button class="ghost" id="save-settings">Save settings</button>
+        <button class="ghost" id="test-connection">Test connection</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="generate" id="generate">Generate playlist</button>
+  <div class="status" id="status"></div>
+
+  <section class="results" id="results" hidden>
+    <div class="results-head">
+      <h2 id="playlist-name">Your playlist</h2>
+      <div class="actions">
+        <button class="ghost" id="copy-json">Copy JSON</button>
+        <button class="ghost" id="download">Download .json</button>
+      </div>
+    </div>
+    <p class="meta" id="playlist-meta"></p>
+    <ul class="tracks" id="tracks"></ul>
+  </section>
+
+  <details id="raw-panel" class="panel" hidden style="margin-top:12px">
+    <summary class="panel-toggle"><span>Raw model response</span><span>▾</span></summary>
+    <pre id="raw-output"></pre>
+  </details>
+
+  <div class="empty" id="empty">No playlist yet — type a phrase and hit generate.</div>
+
+  <div class="footer">
+    <button class="ghost" id="theme-toggle">Toggle theme</button>
+  </div>
+</div>
+
+<script>
+  const els = {
+    phrase: document.getElementById('phrase'),
+    count: document.getElementById('count'),
+    era: document.getElementById('era'),
+    keyList: document.getElementById('key-list'),
+    addKey: document.getElementById('add-key'),
+    baseUrl: document.getElementById('baseUrl'),
+    model: document.getElementById('model'),
+    generate: document.getElementById('generate'),
+    status: document.getElementById('status'),
+    results: document.getElementById('results'),
+    tracks: document.getElementById('tracks'),
+    empty: document.getElementById('empty'),
+    playlistName: document.getElementById('playlist-name'),
+    playlistMeta: document.getElementById('playlist-meta'),
+    saveSettings: document.getElementById('save-settings'),
+    testConnection: document.getElementById('test-connection'),
+    copyJson: document.getElementById('copy-json'),
+    download: document.getElementById('download'),
+    advToggle: document.getElementById('adv-toggle'),
+    advArrow: document.getElementById('adv-arrow'),
+    advanced: document.getElementById('advanced'),
+    themeToggle: document.getElementById('theme-toggle'),
+    rawPanel: document.getElementById('raw-panel'),
+    rawOutput: document.getElementById('raw-output'),
+  };
+
+  const STORE_KEY = 'phrase-playlist-settings-v3';
+  let lastPlaylist = null;
+  let apiKeys = [];
+  let rotationCursor = 0;
+
+  function newKeyId() {
+    return 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function addKeyRow(value, enabled) {
+    const row = document.createElement('div');
+    row.className = 'key-row';
+
+    const toggle = document.createElement('input');
+    toggle.type = 'checkbox';
+    toggle.className = 'key-enabled';
+    toggle.checked = enabled !== false;
+    toggle.title = 'Enable this key';
+
+    const input = document.createElement('input');
+    input.type = 'password';
+    input.className = 'key-input';
+    input.placeholder = 'sk-...';
+    input.autocomplete = 'off';
+    input.value = value || '';
+
+    const show = document.createElement('button');
+    show.type = 'button';
+    show.className = 'ghost key-btn';
+    show.textContent = 'Show';
+    show.addEventListener('click', () => {
+      const hidden = input.type === 'password';
+      input.type = hidden ? 'text' : 'password';
+      show.textContent = hidden ? 'Hide' : 'Show';
+    });
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'ghost key-btn';
+    remove.textContent = 'Del';
+    remove.addEventListener('click', () => {
+      row.remove();
+      if (!els.keyList.querySelector('.key-row')) addKeyRow('', true);
+    });
+
+    row.appendChild(toggle);
+    row.appendChild(input);
+    row.appendChild(show);
+    row.appendChild(remove);
+    els.keyList.appendChild(row);
+  }
+
+  function readKeys() {
+    return Array.from(els.keyList.querySelectorAll('.key-row'))
+      .map(row => ({
+        enabled: row.querySelector('.key-enabled').checked,
+        value: row.querySelector('.key-input').value.trim(),
+      }))
+      .filter(k => k.value);
+  }
+
+  function getEnabledKeys() {
+    const keys = readKeys().filter(k => k.enabled).map(k => k.value);
+    if (keys.length <= 1) return keys;
+    const start = rotationCursor % keys.length;
+    return keys.slice(start).concat(keys.slice(0, start));
+  }
+
+  function loadSettings() {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch (e) {}
+    if (!saved.keys || !saved.keys.length) {
+      try {
+        const old = JSON.parse(localStorage.getItem('phrase-playlist-settings-v2') || '{}');
+        if (old.apiKey) saved.keys = [{ value: old.apiKey, enabled: true }];
+      } catch (e) {}
+    }
+    apiKeys = Array.isArray(saved.keys) ? saved.keys : [];
+    apiKeys.forEach(k => addKeyRow(k.value, k.enabled));
+    if (!els.keyList.querySelector('.key-row')) addKeyRow('', true);
+    if (saved.baseUrl) els.baseUrl.value = saved.baseUrl;
+    if (saved.model) els.model.value = saved.model;
+  }
+
+  function saveSettings(silent) {
+    apiKeys = readKeys();
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      keys: apiKeys,
+      baseUrl: els.baseUrl.value.trim(),
+      model: els.model.value.trim(),
+    }));
+    if (!silent) setStatus('Saved ' + apiKeys.length + ' API key(s).', 'ok');
+  }
+
+  function setStatus(message, type) {
+    els.status.textContent = message || '';
+    els.status.className = 'status' + (type ? ' ' + type : '');
+  }
+
+  function buildPrompt(phrase, count, era) {
+    return [
+      'You are a music curator. Build a playlist for this request:',
+      '"' + phrase + '"',
+      '',
+      'Constraints:',
+      '- Exactly ' + count + ' tracks.',
+      '- Era/style preference: ' + (era || 'any era') + '.',
+      '- Use real, existing songs with correct artist names.',
+      '- Avoid repeating the same artist more than twice.',
+      '',
+      'Return ONLY valid JSON with this exact shape, no markdown, no commentary:',
+      '{"name":"<catchy playlist title>","description":"<one sentence about the vibe>","tracks":[{"title":"<song>","artist":"<artist>","why":"<max 12 words on why it fits>"}]}'
+    ].join('\n');
+  }
+
+  function sanitizeJson(str) {
+    return str
+      .replace(/^\uFEFF/, '')
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/,\s*([}\]])/g, '$1');
+  }
+
+  function repairJson(str) {
+    let out = '';
+    let inString = false;
+    let quote = '';
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      if (inString) {
+        if (ch === '\\') { out += ch + (str[i + 1] || ''); i++; continue; }
+        if (ch === quote) { inString = false; out += '"'; continue; }
+        if (ch === '"') { out += '\\"'; continue; }
+        if (ch === '\n') { out += '\\n'; continue; }
+        if (ch === '\r') { continue; }
+        out += ch;
+      } else {
+        if (ch === '"' || ch === "'") { inString = true; quote = ch; out += '"'; continue; }
+        out += ch;
+      }
+    }
+
+    out = out
+      .replace(/\/\/[^\n]*/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:/g, '$1"$2":')
+      .replace(/,\s*([}\]])/g, '$1')
+      .replace(/\bNaN\b/g, 'null')
+      .replace(/\bNone\b/g, 'null')
+      .replace(/\bTrue\b/g, 'true')
+      .replace(/\bFalse\b/g, 'false');
+
+    return out;
+  }
+
+  function parseLoose(str) {
+    const attempts = [
+      str,
+      sanitizeJson(str),
+      str.replace(/\/\/[^\n]*/g, ''),
+      repairJson(str),
+      repairJson(sanitizeJson(str)),
+    ];
+    for (const attempt of attempts) {
+      try { return JSON.parse(attempt); } catch (e) {}
+    }
+    return null;
+  }
+
+  function parseFromText(text) {
+    const tracks = [];
+    const seen = new Set();
+    const lines = text.split(/\r?\n/);
+    for (let line of lines) {
+      line = line.trim().replace(/^[-*•]\s*/, '').replace(/^\d+[.)]\s*/, '').replace(/\*\*/g, '');
+      if (!line || line.length > 200) continue;
+      if (/^[\{\[\]}\s,:]+$/.test(line)) continue;
+      if (/^"(name|description|tracks|title|artist|why)"/i.test(line)) continue;
+
+      let title = '';
+      let artist = '';
+
+      const quoted = line.match(/^["']([^"']{1,120})["']\s*(?:[-–—]|by)\s+(.+)$/i);
+      const dash = line.match(/^(.{1,120}?)\s*[-–—]\s*(.{1,120})$/);
+      const by = line.match(/^(.{1,120}?)\s+by\s+(.{1,120})$/i);
+
+      if (quoted) { title = quoted[1]; artist = quoted[2]; }
+      else if (by) { title = by[1]; artist = by[2]; }
+      else if (dash) { title = dash[1]; artist = dash[2]; }
+      else continue;
+
+      title = title.replace(/^["'`]+|["'`]+$/g, '').trim();
+      artist = artist.replace(/^["'`]+|["'`]+$/g, '').replace(/[.,;]$/, '').trim();
+      if (!title || !artist) continue;
+
+      const key = (title + '|' + artist).toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      tracks.push({ title, artist, why: '' });
+    }
+    return tracks.length >= 2 ? tracks : [];
+  }
+
+  function extractJson(text) {
+    if (!text) throw new Error('The model returned an empty response.');
+
+    let cleaned = text.trim().replace(/^```[a-zA-Z]*\s*/, '').replace(/```\s*$/, '').trim();
+
+    const direct = parseLoose(cleaned);
+    if (direct) return direct;
+
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      const sliced = parseLoose(cleaned.slice(start, end + 1));
+      if (sliced) return sliced;
+    }
+
+    const arrayStart = cleaned.indexOf('[');
+    const arrayEnd = cleaned.lastIndexOf(']');
+    if (arrayStart !== -1 && arrayEnd > arrayStart) {
+      const arr = parseLoose(cleaned.slice(arrayStart, arrayEnd + 1));
+      if (Array.isArray(arr)) return { name: 'Your playlist', description: '', tracks: arr };
+    }
+
+    const looseTracks = parseFromText(cleaned);
+    if (looseTracks.length) {
+      setStatus('The model did not return valid JSON — parsed a track list from its text instead.', 'ok');
+      return { name: 'Your playlist', description: '', tracks: looseTracks };
+    }
+
+    showRaw(text);
+    throw new Error('Could not parse the AI response as JSON. See the raw response panel below.');
+  }
+
+  function normalizePlaylist(value) {
+    if (!value) return null;
+    if (Array.isArray(value)) return { name: 'Your playlist', description: '', tracks: value };
+    for (const key of ['playlist', 'result', 'data', 'response']) {
+      if (value[key]) {
+        const nested = normalizePlaylist(value[key]);
+        if (nested) return nested;
+      }
+    }
+    if (!value.tracks && value.songs) value.tracks = value.songs;
+    if (!Array.isArray(value.tracks)) return null;
+    value.tracks = value.tracks
+      .map(track => {
+        if (typeof track === 'string') return { title: track, artist: '', why: '' };
+        if (!track || typeof track !== 'object') return null;
+        return {
+          title: String(track.title || track.name || track.song || track.track || '').trim(),
+          artist: String(track.artist || track.by || track.artist_name || '').trim(),
+          why: String(track.why || track.reason || track.note || '').trim(),
+        };
+      })
+      .filter(track => track && track.title);
+    return value.tracks.length ? value : null;
+  }
+
+  async function generatePlaylist() {
+    const phrase = els.phrase.value.trim();
+    if (!phrase) { setStatus('Enter a phrase first.', 'error'); els.phrase.focus(); return; }
+
+    const keys = getEnabledKeys();
+    if (!keys.length) {
+      els.advanced.hidden = false;
+      els.advArrow.textContent = '▾';
+      setStatus(readKeys().length ? 'All your API keys are disabled.' : 'Add at least one API key under AI Settings.', 'error');
+      return;
+    }
+
+    const baseUrl = resolveBaseUrl();
+    const model = els.model.value.trim() || 'deepseek-v4.1-flash:free';
+    const body = JSON.stringify({
+      model: model,
+      temperature: 0.85,
+      max_tokens: 2000,
+      messages: [
+        { role: 'system', content: 'You are a concise music curator. Reply with a single valid JSON object and nothing else — no markdown fences, no commentary.' },
+        { role: 'user', content: buildPrompt(phrase, els.count.value, els.era.value.trim()) },
+      ],
+    });
+
+    els.generate.disabled = true;
+    els.generate.textContent = 'Curating...';
+
+    try {
+    let lastError = null;
+    for (let i = 0; i < keys.length; i++) {
+      const apiKey = keys[i];
+      setStatus('Asking the model using key ' + (i + 1) + ' of ' + keys.length + '...');
+      try {
+        const res = await fetch(baseUrl + '/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + apiKey,
+          },
+          body: body,
+        });
+
+        const rawText = await res.text();
+        showRaw('Key ' + (i + 1) + '/' + keys.length + ' — HTTP ' + res.status + (res.ok ? '' : ' (error)') + '\n\n' + rawText);
+
+        if (!res.ok) {
+          let detail = rawText;
+          try {
+            const errBody = JSON.parse(rawText);
+            detail = errBody.error && errBody.error.message ? errBody.error.message : rawText;
+          } catch (e) {}
+          const err = new Error('API error ' + res.status + ': ' + detail);
+          err.retryable = res.status === 401 || res.status === 402 || res.status === 403 || res.status === 429 || res.status >= 500;
+          throw err;
+        }
+
+        let data;
+        try { data = JSON.parse(rawText); } catch (e) { throw new Error('The server returned a non-JSON response. See the raw response panel below.'); }
+
+        const content = extractMessageText(data);
+        if (!content) {
+          throw new Error('The model returned an empty response. Check the raw response panel — the model may need a different name, or it may not support /chat/completions.');
+        }
+        const parsed = extractJson(content);
+        const playlist = normalizePlaylist(parsed);
+        if (!playlist) {
+          showRaw(content);
+          throw new Error('The response JSON had no usable tracks. See the raw response panel below.');
+        }
+
+        rotationCursor = (rotationCursor + i + 1) % keys.length;
+        renderPlaylist(playlist);
+        setStatus('Playlist ready — ' + playlist.tracks.length + ' tracks via key ' + (i + 1) + '.', 'ok');
+        lastError = null;
+        return;
+      } catch (err) {
+        lastError = err;
+        const moreKeys = i < keys.length - 1;
+        const isNetwork = err instanceof TypeError;
+        if (moreKeys && (isNetwork || err.retryable)) {
+          setStatus('Key ' + (i + 1) + ' failed (' + err.message + ') — trying next key...', 'error');
+          continue;
+        }
+        break;
+      }
+    }
+
+    if (lastError) setStatus(describeFetchError(lastError, baseUrl), 'error');
+    } finally {
+      els.generate.disabled = false;
+      els.generate.textContent = 'Generate playlist';
+    }
+  }
+
+  function extractMessageText(data) {
+    const choice = data && data.choices && data.choices[0];
+    if (!choice) {
+      if (data && data.error) throw new Error('API error: ' + (data.error.message || JSON.stringify(data.error)));
+      return '';
+    }
+    const message = choice.message || {};
+    const candidates = [
+      message.content,
+      message.reasoning_content,
+      choice.text,
+      data.output_text,
+    ];
+    if (Array.isArray(message.content)) {
+      candidates.unshift(message.content.map(part => (part && (part.text || part.content)) || '').join(''));
+    }
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) return candidate;
+    }
+    return '';
+  }
+
+  function showRaw(text) {
+    els.rawOutput.textContent = text.length > 8000 ? text.slice(0, 8000) + '\n…(truncated)' : text;
+    els.rawPanel.hidden = false;
+    els.rawPanel.open = true;
+  }
+
+  function resolveBaseUrl() {
+    const raw = els.baseUrl.value.trim() || '/proxy';
+    if (raw.startsWith('/')) return raw.replace(/\/+$/, '');
+    return raw.replace(/\/+$/, '') || 'https://api.openai.com/v1';
+  }
+
+  function describeFetchError(err, baseUrl) {
+    if (err instanceof TypeError) {
+      if (location.protocol === 'file:') {
+        return 'Failed to fetch: this page is open as a local file. Browsers block API calls from file:// — run "python server.py" in this folder and open http://localhost:8000/playlist.html';
+      }
+      return 'Failed to fetch: could not reach ' + baseUrl + '. Check your internet connection, the API base URL, and that the endpoint allows browser CORS requests.';
+    }
+    return err.message;
+  }
+
+  async function testConnection() {
+    const keys = readKeys().filter(k => k.enabled).map(k => k.value);
+    if (!keys.length) {
+      els.advanced.hidden = false;
+      els.advArrow.textContent = '▾';
+      setStatus(readKeys().length ? 'All your API keys are disabled.' : 'Add at least one API key under AI Settings first.', 'error');
+      return;
+    }
+    const baseUrl = resolveBaseUrl();
+    let ok = 0;
+    const results = [];
+    for (let i = 0; i < keys.length; i++) {
+      setStatus('Testing key ' + (i + 1) + ' of ' + keys.length + ' ...');
+      try {
+        const res = await fetch(baseUrl + '/models', {
+          headers: { 'Authorization': 'Bearer ' + keys[i] },
+        });
+        if (res.status === 401) results.push('key ' + (i + 1) + ': rejected (401)');
+        else if (!res.ok) results.push('key ' + (i + 1) + ': HTTP ' + res.status);
+        else { results.push('key ' + (i + 1) + ': OK'); ok++; }
+      } catch (err) {
+        results.push('key ' + (i + 1) + ': ' + (err instanceof TypeError ? 'unreachable' : err.message));
+      }
+    }
+    setStatus(ok + ' of ' + keys.length + ' key(s) OK — ' + results.join(', '), ok ? 'ok' : 'error');
+  }
+
+  function renderPlaylist(playlist) {
+    lastPlaylist = playlist;
+    els.playlistName.textContent = playlist.name || 'Your playlist';
+    els.playlistMeta.textContent = playlist.description || '';
+    els.tracks.innerHTML = '';
+
+    playlist.tracks.forEach((track, i) => {
+      const li = document.createElement('li');
+      li.style.animationDelay = (i * 40) + 'ms';
+
+      const num = document.createElement('div');
+      num.className = 'track-num';
+      num.textContent = String(i + 1);
+
+      const info = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'track-title';
+      title.textContent = track.title || 'Untitled';
+      const artist = document.createElement('div');
+      artist.className = 'track-artist';
+      artist.textContent = track.artist || 'Unknown artist';
+      info.appendChild(title);
+      info.appendChild(artist);
+      if (track.why) {
+        const why = document.createElement('div');
+        why.className = 'track-why';
+        why.textContent = track.why;
+        info.appendChild(why);
+      }
+
+      const links = document.createElement('div');
+      links.className = 'track-links';
+      const query = encodeURIComponent([track.title, track.artist].filter(Boolean).join(' '));
+      const spotify = document.createElement('a');
+      spotify.href = 'https://open.spotify.com/search/' + query;
+      spotify.target = '_blank';
+      spotify.rel = 'noopener';
+      spotify.textContent = 'Spotify';
+      const youtube = document.createElement('a');
+      youtube.href = 'https://www.youtube.com/results?search_query=' + query;
+      youtube.target = '_blank';
+      youtube.rel = 'noopener';
+      youtube.textContent = 'YouTube';
+      links.appendChild(spotify);
+      links.appendChild(youtube);
+
+      li.appendChild(num);
+      li.appendChild(info);
+      li.appendChild(links);
+      els.tracks.appendChild(li);
+    });
+
+    els.results.hidden = false;
+    els.empty.hidden = true;
+  }
+
+  els.generate.addEventListener('click', generatePlaylist);
+
+  els.phrase.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) generatePlaylist();
+  });
+
+  els.advToggle.addEventListener('click', () => {
+    const open = els.advanced.hidden;
+    els.advanced.hidden = !open;
+    els.advArrow.textContent = open ? '▾' : '▸';
+  });
+
+  els.addKey.addEventListener('click', () => {
+    addKeyRow('', true);
+    const inputs = els.keyList.querySelectorAll('.key-input');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+
+  els.saveSettings.addEventListener('click', () => saveSettings(false));
+  els.testConnection.addEventListener('click', testConnection);
+
+  els.keyList.addEventListener('change', () => saveSettings(true));
+
+  els.copyJson.addEventListener('click', async () => {
+    if (!lastPlaylist) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(lastPlaylist, null, 2));
+      setStatus('Playlist JSON copied.', 'ok');
+    } catch (e) {
+      setStatus('Clipboard blocked by the browser.', 'error');
+    }
+  });
+
+  els.download.addEventListener('click', () => {
+    if (!lastPlaylist) return;
+    const blob = new Blob([JSON.stringify(lastPlaylist, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (lastPlaylist.name || 'playlist').replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const storedTheme = localStorage.getItem('theme');
+  document.documentElement.setAttribute('data-theme', storedTheme || (prefersDark ? 'dark' : 'light'));
+
+  els.themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+
+  loadSettings();
+</script>
+</body>
+</html>
