@@ -19,13 +19,7 @@ Describe a mood, a moment, or a vibe and the app asks an AI model to return real
 
 ## Quick start
 
-### Option A — run the executable (Windows)
-
-1. Run `dist\PhraseToPlaylist.exe`.
-2. Your browser opens automatically. The console prints the local and LAN URLs.
-3. Open **AI Settings**, paste one or more API keys, set the base URL and model, then click **Generate playlist**.
-
-### Option B — run from source
+### Run from source
 
 ```bash
 python server.py
