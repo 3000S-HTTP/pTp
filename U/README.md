@@ -78,6 +78,29 @@ The app is free; you only choose what powers the AI:
 
 There is no fully unpaid, unlimited, guaranteed-24/7 hosted AI. The closest combination is **local Ollama + this app on an always-on device**.
 
+## Deploy to Railway
+
+The app is a single Python file with no dependencies, so it deploys as-is. Railway sets a `PORT` environment variable and the server already honors it, binds `0.0.0.0`, skips browser auto-open when hosted, and exposes `GET /healthz`.
+
+1. Push this folder to a GitHub repo (already done for `pTp`).
+2. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
+3. Pick the repo. If Railway asks for the root directory, set it to `U` (the folder that contains `server.py`).
+4. Railway detects Python via Nixpacks. The included `Procfile` and `railway.json` set the start command (`python server.py`) and health check (`/healthz`).
+5. Once deployed, open the generated URL (`https://<your-app>.up.railway.app` — it redirects to `playlist.html`).
+6. Enter your API key in **AI Settings** on the site. The base URL stays `/proxy`.
+
+Optional environment variables (Railway → Variables):
+
+| Variable | Purpose |
+| --- | --- |
+| `UPSTREAM_BASE` | Change the default upstream API, e.g. `https://api.openai.com/v1`. |
+| `NO_BROWSER` | Set to `1` to never auto-open a browser (also automatic when hosted). |
+
+Important notes for hosting:
+
+- The page is served over HTTPS, which browsers require for reliable behavior, but it is **public**. Anyone with the URL can open the UI. Since keys live in each visitor's browser `localStorage` and are not stored on the server, nobody can see your key — but the proxy does forward whatever key a visitor supplies.
+- Railway's free trial credit runs out; a permanently running service needs a paid plan. For a truly $0 always-on setup, run the app on your own device instead.
+
 ## Build the executable
 
 ```bash

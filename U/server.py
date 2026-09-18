@@ -10,7 +10,9 @@ import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 TARGET = os.environ.get("UPSTREAM_BASE", "https://tokenharbor.ai/v1").rstrip("/")
-PORT = int(os.environ.get("PORT", "8000"))
+ENV_PORT = os.environ.get("PORT")
+HOSTED = bool(ENV_PORT) or bool(os.environ.get("RAILWAY_ENVIRONMENT"))
+OPEN_BROWSER = os.environ.get("NO_BROWSER") != "1" and not HOSTED
 
 
 def resource_dir():
@@ -150,6 +152,14 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path.startswith("/proxy"):
             self._proxy("GET")
+        elif self.path == "/healthz":
+            payload = b"ok"
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.send_header("Content-Length", str(len(payload)))
+            self._cors()
+            self.end_headers()
+            self.wfile.write(payload)
         elif self.path in ("/", "/index.html"):
             self.send_response(302)
             self.send_header("Location", "/playlist.html")
@@ -165,26 +175,42 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
-    port = find_free_port(PORT)
+    if ENV_PORT:
+        try:
+            port = int(ENV_PORT)
+        except ValueError:
+            port = find_free_port(8000)
+    else:
+        port = find_free_port(8000)
+
+    host = "0.0.0.0"
     local_url = "http://localhost:%d/playlist.html" % port
-    ips = candidate_ips()
-    server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
+    server = ThreadingHTTPServer((host, port), Handler)
+
     print("Phrase to Playlist")
     print("Serving   %s" % ROOT)
     print("Proxying  /proxy/* -> %s" % TARGET)
-    print("")
-    print("  This computer : %s" % local_url)
-    print("  Phone / tablet (same Wi-Fi), try one of:")
-    if ips:
-        for ip in ips:
-            print("      http://%s:%d/playlist.html" % (ip, port))
+    print("Listening on %s:%d" % (host, port))
+
+    if HOSTED:
+        print("Hosted mode: browser auto-open disabled.")
     else:
-        print("      (no LAN IP found — connect to Wi-Fi or Ethernet)")
-    print("")
-    print("On your iPhone: same Wi-Fi network, open one of the URLs above in Safari.")
-    print("If none load, allow 'PhraseToPlaylist' through Windows Firewall.")
-    print("Press Ctrl+C to stop.")
-    threading.Timer(0.8, lambda: webbrowser.open(local_url)).start()
+        ips = candidate_ips()
+        print("")
+        print("  This computer : %s" % local_url)
+        print("  Phone / tablet (same Wi-Fi), try one of:")
+        if ips:
+            for ip in ips:
+                print("      http://%s:%d/playlist.html" % (ip, port))
+        else:
+            print("      (no LAN IP found — connect to Wi-Fi or Ethernet)")
+        print("")
+        print("On your iPhone: same Wi-Fi network, open one of the URLs above in Safari.")
+        print("If none load, allow 'PhraseToPlaylist' through Windows Firewall.")
+        print("Press Ctrl+C to stop.")
+        if OPEN_BROWSER:
+            threading.Timer(0.8, lambda: webbrowser.open(local_url)).start()
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
