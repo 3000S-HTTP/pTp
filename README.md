@@ -78,6 +78,24 @@ The app is free; you only choose what powers the AI:
 
 There is no fully unpaid, unlimited, guaranteed-24/7 hosted AI. The closest combination is **local Ollama + this app on an always-on device**.
 
+## Deploy to Railway
+
+The app is a single Python file with no dependencies, so it deploys as-is. Railway sets a `PORT` environment variable; the server honors it, binds `0.0.0.0`, skips browser auto-open when hosted, and exposes `GET /healthz`.
+
+1. Push this folder to GitHub.
+2. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**.
+3. Pick the repo. If Railway asks for the root directory, set it to `U` (the folder containing `server.py`).
+4. Nixpacks detects Python. The included `Procfile` and `railway.json` set the start command (`python server.py`) and health check (`/healthz`).
+5. Open the generated URL (`https://<your-app>.up.railway.app`, which redirects to `playlist.html`).
+6. Enter your API key in **AI Settings**. Keep the base URL as `/proxy`.
+
+Optional variables: `UPSTREAM_BASE` (change the upstream API) and `NO_BROWSER=1` (never auto-open a browser; automatic when hosted).
+
+Hosting notes:
+
+- The site is public, but keys live in each visitor's browser `localStorage` and are never stored server-side. The proxy forwards whatever key a visitor supplies.
+- Railway's trial credit expires; an always-on service needs a paid plan. For a $0 always-on setup, run the app on your own device.
+
 ## Build the executable
 
 ```bash
@@ -90,8 +108,11 @@ The result is `dist/PhraseToPlaylist.exe`.
 ## Project layout
 
 ```
-playlist.html   the entire UI (HTML, CSS, JS)
-server.py       static server + API proxy, auto-opens the browser
+playlist.html     the entire UI (HTML, CSS, JS)
+server.py         static server + API proxy, auto-opens the browser
+Procfile          Railway start command
+railway.json      Railway build/deploy config with health check
+requirements.txt  empty (standard library only)
 ```
 
 ## Troubleshooting
