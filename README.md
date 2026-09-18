@@ -1,0 +1,110 @@
+# pTp — Phrase to Playlist
+
+Turn a phrase like *"rainy Sunday morning, warm coffee, no plans"* into a curated playlist using any OpenAI-compatible AI API.
+
+Describe a mood, a moment, or a vibe and the app asks an AI model to return real songs with artists and a short reason each one fits. Every track links out to Spotify and YouTube search.
+
+![black and white, compact UI](https://img.shields.io/badge/UI-monochrome-black)
+
+## Features
+
+- **Phrase to playlist** — natural-language prompt becomes a titled playlist with a description.
+- **Any OpenAI-compatible API** — OpenAI, Groq, OpenRouter, Google Gemini (compatibility endpoint), Together, Ollama, LM Studio, tokenharbor, and more.
+- **Multiple API keys** — add two or more keys; they are tried in order and the app rotates to the next enabled key automatically when one fails (bad key, rate limit, server error).
+- **Local proxy built in** — many providers do not send CORS headers, so the browser cannot call them directly. The bundled proxy forwards `/proxy/*` to the upstream API and adds CORS, so the UI works in Safari, Chrome, and mobile browsers.
+- **Works on your iPhone** — the server binds to your LAN and prints a URL you can open on your phone.
+- **Forgiving JSON parser** — handles markdown fences, single quotes, unquoted keys, trailing commas, wrapper objects, and plain-text track lists.
+- **Monochrome compact UI** — black and white, light and dark.
+- **Single-file executable** — build a standalone `.exe` with PyInstaller.
+
+## Quick start
+
+### Option A — run the executable (Windows)
+
+1. Run `dist\PhraseToPlaylist.exe`.
+2. Your browser opens automatically. The console prints the local and LAN URLs.
+3. Open **AI Settings**, paste one or more API keys, set the base URL and model, then click **Generate playlist**.
+
+### Option B — run from source
+
+```bash
+python server.py
+```
+
+Then open `http://localhost:8000/playlist.html`.
+
+No dependencies are required — `server.py` only uses the Python standard library.
+
+## Using it on your iPhone
+
+1. Start the server on your computer (exe or `python server.py`).
+2. Make sure both the computer and the iPhone are on the **same network** (Wi-Fi or the router both are connected to).
+3. In the console, find the "Phone / tablet" URL, for example `http://192.168.1.100:8000/playlist.html`.
+4. Open that URL in Safari. Use Share → **Add to Home Screen** for an app-like icon.
+5. If it does not load, allow the app through your firewall, or check that your computer and phone are on the same subnet (VPNs and Hyper-V adapters can interfere).
+
+## Configuration
+
+Open **AI Settings** in the app:
+
+| Field | Meaning |
+| --- | --- |
+| **API keys** | One or more keys. Stored only in your browser's `localStorage`. Each row has an enable checkbox, Show/Hide, and Delete. |
+| **API base URL** | `/proxy` (default) routes through the built-in proxy. For direct calls use a full URL such as `https://api.openai.com/v1`. |
+| **Model** | The model name for your provider. |
+
+Keys never leave your machine except in the request to the provider you configure. There is no analytics and no third-party backend.
+
+### Provider examples
+
+| Provider | Base URL | Example model |
+| --- | --- | --- |
+| OpenAI | `https://api.openai.com/v1` | `gpt-4o-mini` |
+| Groq | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
+| OpenRouter | `https://openrouter.ai/api/v1` | `meta-llama/llama-3.3-70b-instruct:free` |
+| Google Gemini (OpenAI compatibility) | `https://generativelanguage.googleapis.com/v1beta/openai` | `gemini-2.0-flash` |
+| Ollama (local, no key) | `http://localhost:11434/v1` | `llama3.1` |
+| tokenharbor | `https://tokenharbor.ai/v1` | `deepseek-v4.1-flash:free` |
+
+When you use a direct URL instead of `/proxy`, the provider must allow browser CORS requests.
+
+## Free and low-cost options
+
+The app is free; you only choose what powers the AI:
+
+- **Fully local and free forever** — run [Ollama](https://ollama.com) and set the base URL to `http://localhost:11434/v1` with any key placeholder. No internet, no cost, no rate limits. Requires your computer to be on.
+- **Free API tiers** — Google Gemini and Groq both have generous free tiers; OpenRouter lists models ending in `:free`. Free tiers have rate limits and can change, so they are not a guarantee of 24/7 capacity.
+- **Free hosting for 24/7** — to run unattended, host `server.py` on a free platform such as Cloudflare Workers, Render, Railway, or Fly.io (free tiers sleep or have quotas), or keep it running on a home machine or Raspberry Pi. Point the base URL at a provider with a free tier.
+
+There is no fully unpaid, unlimited, guaranteed-24/7 hosted AI. The closest combination is **local Ollama + this app on an always-on device**.
+
+## Build the executable
+
+```bash
+python -m pip install pyinstaller
+python -m PyInstaller --noconfirm --onefile --name "PhraseToPlaylist" --add-data "playlist.html;." --console server.py
+```
+
+The result is `dist/PhraseToPlaylist.exe`.
+
+## Project layout
+
+```
+playlist.html   the entire UI (HTML, CSS, JS)
+server.py       static server + API proxy, auto-opens the browser
+```
+
+## Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| `Failed to fetch` | You opened the file directly (`file://`). Run `python server.py` or the exe and use `http://localhost:...`. |
+| `Failed to fetch` with a direct provider URL | The provider does not allow browser CORS. Use the default `/proxy` base URL instead. |
+| `401` / key rejected | The key is invalid or disabled. Rotate it with your provider. |
+| `502` proxy error | Transient upstream failure. The proxy retries three times; try again or switch keys. |
+| `Could not parse ... JSON` | Open the **Raw model response** panel and, if needed, switch to a model that follows JSON instructions better. |
+| Button stuck on `Curating...` | Update to the current version; this was fixed. |
+
+## License
+
+MIT. Use it, change it, ship it.
