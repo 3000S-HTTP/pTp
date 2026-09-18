@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import time
 import socket
 import threading
 import urllib.error
@@ -102,20 +103,41 @@ class Handler(SimpleHTTPRequestHandler):
         if self.headers.get("Content-Type"):
             headers["Content-Type"] = self.headers["Content-Type"]
         headers["Accept"] = "application/json"
+        headers["User-Agent"] = "PhraseToPlaylist/1.0 (+local proxy)"
 
-        req = urllib.request.Request(url, data=body, headers=headers, method=method)
-        try:
-            with urllib.request.urlopen(req, timeout=120) as resp:
-                status = resp.status
-                payload = resp.read()
-                content_type = resp.headers.get("Content-Type", "application/json")
-        except urllib.error.HTTPError as e:
-            status = e.code
-            payload = e.read()
-            content_type = e.headers.get("Content-Type", "application/json")
-        except Exception as e:
+        status = None
+        payload = b""
+        content_type = "application/json"
+        last_error = None
+
+        for attempt in range(3):
+            req = urllib.request.Request(url, data=body, headers=headers, method=method)
+            try:
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    status = resp.status
+                    payload = resp.read()
+                    content_type = resp.headers.get("Content-Type", "application/json")
+                last_error = None
+                break
+            except urllib.error.HTTPError as e:
+                status = e.code
+                payload = e.read()
+                content_type = e.headers.get("Content-Type", "application/json")
+                last_error = None
+                if e.code < 500:
+                    break
+                last_error = "HTTP %d" % e.code
+            except Exception as e:
+                last_error = "%s: %s" % (type(e).__name__, e)
+                status = None
+
+            if attempt < 2:
+                sys.stderr.write("Upstream attempt %d failed (%s); retrying...\n" % (attempt + 1, last_error))
+                time.sleep(0.6 + attempt)
+
+        if status is None:
             status = 502
-            payload = json.dumps({"error": {"message": "Proxy could not reach %s: %s" % (url, e)}}).encode()
+            payload = json.dumps({"error": {"message": "Proxy could not reach %s after retries: %s" % (url, last_error)}}).encode()
             content_type = "application/json"
 
         self.send_response(status)
