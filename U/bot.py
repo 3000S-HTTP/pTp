@@ -358,8 +358,17 @@ def main():
     print("Bot started. Upstream %s, model %s" % (BASE_URL, MODEL))
     start_health_server()
     try:
+        me = http_json(TG + "/getMe").get("result", {})
+        print("Bot identity: @%s (%s). Message THIS bot." % (me.get("username"), me.get("first_name")))
+    except urllib.error.HTTPError as e:
+        sys.stderr.write("getMe failed: HTTP %s %s\n" % (e.code, e.read().decode("utf-8", "replace")[:300]))
+    except Exception as e:
+        sys.stderr.write("getMe failed: %s\n" % e)
+    try:
         http_json(TG + "/deleteWebhook", {"drop_pending_updates": True})
         print("Webhook cleared; using long polling.")
+    except urllib.error.HTTPError as e:
+        sys.stderr.write("deleteWebhook failed: HTTP %s %s\n" % (e.code, e.read().decode("utf-8", "replace")[:300]))
     except Exception as e:
         sys.stderr.write("deleteWebhook failed: %s\n" % e)
     offset = None
@@ -386,8 +395,22 @@ def main():
                     except Exception as e:
                         sys.stderr.write("handle failed: %s\n" % e)
                         send_message(chat_id, "Unexpected error while handling that message.\n\nReason: %s" % e)
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", "replace")[:300]
+            sys.stderr.write("polling HTTP %s: %s\n" % (e.code, body))
+            if e.code == 409:
+                sys.stderr.write(
+                    "409 Conflict: another process is polling this bot token "
+                    "(duplicate service or webhook). Waiting...\n")
+                try:
+                    http_json(TG + "/deleteWebhook", {"drop_pending_updates": False})
+                except Exception:
+                    pass
+                time.sleep(5)
+                continue
+            time.sleep(3)
         except Exception as e:
-            sys.stderr.write("polling error: %s\n" % e)
+            sys.stderr.write("polling error: %s: %s\n" % (type(e).__name__, e))
             time.sleep(3)
 
 
