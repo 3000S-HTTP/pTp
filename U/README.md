@@ -121,8 +121,8 @@ python bot.py
 ### Deploy as a Railway service
 
 1. In the same Railway project, click **New** → **GitHub Repo** → pick the repo again (create a second service).
-2. Set the root directory to `U`.
-3. In **Settings** → **Deploy**, set the **Custom Start Command** to `python bot.py`.
+2. Set the root directory to `U/bot` (not `U` — the bot folder has its own start command).
+3. Leave the start command as-is; `bot/railway.json` and `bot/Procfile` already run `python bot.py`.
 4. Add **Variables**:
    - `TELEGRAM_BOT_TOKEN` — from BotFather.
    - `API_KEY` — your provider key.
