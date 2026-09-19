@@ -3,9 +3,11 @@ import re
 import sys
 import json
 import time
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 API_KEY = os.environ.get("API_KEY", "").strip()
@@ -268,6 +270,7 @@ HELP = (
 
 def handle(chat_id, text):
     phrase = text.strip()
+    print("handle: chat=%s phrase=%r" % (chat_id, phrase[:80]))
     if not phrase:
         send_message(chat_id, "Send me a phrase and I'll build a playlist.")
         return
@@ -275,10 +278,7 @@ def handle(chat_id, text):
         send_message(chat_id, HELP)
         return
 
-    try:
-        send_message(chat_id, "Building your playlist for: %s" % phrase)
-    except Exception as e:
-        sys.stderr.write("notify failed: %s\n" % e)
+    send_message(chat_id, "Building your playlist for: %s" % phrase)
 
     try:
         playlist = generate(phrase)
@@ -286,6 +286,10 @@ def handle(chat_id, text):
         sys.stderr.write("generate failed: %s\n" % e)
         send_message(chat_id, "Sorry, that failed.\n\nReason: %s" % e)
         return
+    if playlist:
+        print("handle: got playlist '%s' with %d tracks" % (playlist.get("name"), len(playlist.get("tracks") or [])))
+    else:
+        print("handle: model returned no usable playlist")
 
     if not playlist:
         send_message(chat_id, "The model did not return a usable playlist. Try rephrasing your phrase.")
@@ -322,14 +326,39 @@ def handle(chat_id, text):
         send_message(chat_id, "I built the playlist but could not format it.\n\nReason: %s" % e)
 
 
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = b"ok"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *args):
+        pass
+
+
+def start_health_server():
+    port = int(os.environ.get("PORT", "8080"))
+    try:
+        server = ThreadingHTTPServer(("0.0.0.0", port), HealthHandler)
+    except OSError as e:
+        sys.stderr.write("health server could not bind port %d: %s\n" % (port, e))
+        return
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    print("Health server listening on /healthz (port %d)." % port)
+
+
 def main():
     if not BOT_TOKEN:
         sys.exit("TELEGRAM_BOT_TOKEN is not set.")
     if not API_KEY:
         sys.exit("API_KEY is not set.")
     print("Bot started. Upstream %s, model %s" % (BASE_URL, MODEL))
+    start_health_server()
     try:
-        http_json(TG + "/deleteWebhook", {"drop_pending_updates": False})
+        http_json(TG + "/deleteWebhook", {"drop_pending_updates": True})
         print("Webhook cleared; using long polling.")
     except Exception as e:
         sys.stderr.write("deleteWebhook failed: %s\n" % e)
@@ -341,7 +370,10 @@ def main():
                 params["offset"] = offset
             url = TG + "/getUpdates?" + urllib.parse.urlencode(params)
             data = http_json(url, timeout=60)
-            for update in data.get("result", []):
+            updates = data.get("result", [])
+            if updates:
+                print("received %d update(s)" % len(updates))
+            for update in updates:
                 offset = update["update_id"] + 1
                 message = update.get("message") or update.get("edited_message")
                 if not message:
