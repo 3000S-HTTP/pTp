@@ -103,7 +103,7 @@ Important notes for hosting:
 
 ## Telegram bot
 
-`bot.py` is a Telegram bot version. Type a phrase and it replies with the playlist name, then sends two files: a `.m3u` playlist file and a `.json` data file. It sends links only — it does not download or send audio.
+`bot.py` is a Telegram bot version. Type a phrase and it replies with the playlist name and every track as regular chat messages, each with official Spotify / YouTube / YouTube Music links. It sends links only — it does not download or send audio. If anything fails, the bot reports the reason in the chat.
 
 ### Create the bot
 
@@ -128,7 +128,7 @@ python bot.py
    - `API_KEY` — your provider key.
    - `UPSTREAM_BASE` — optional, defaults to `https://tokenharbor.ai/v1`.
    - `MODEL` — optional, defaults to `deepseek-v4.1-flash:free`.
-   - `TRACKS` — optional, default `8`.
+   - `TRACKS` — optional, default `20`.
 5. Deploy. Send your bot a phrase on Telegram to test.
 
 The bot does not need a public port or health check — it uses long polling.

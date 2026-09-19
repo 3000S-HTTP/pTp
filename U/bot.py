@@ -3,7 +3,6 @@ import re
 import sys
 import json
 import time
-import uuid
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -12,7 +11,7 @@ BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 API_KEY = os.environ.get("API_KEY", "").strip()
 BASE_URL = os.environ.get("UPSTREAM_BASE", "https://tokenharbor.ai/v1").rstrip("/")
 MODEL = os.environ.get("MODEL", "deepseek-v4.1-flash:free")
-TRACKS = os.environ.get("TRACKS", "8")
+TRACKS = os.environ.get("TRACKS", "20")
 
 TG = "https://api.telegram.org/bot%s" % BOT_TOKEN
 
@@ -87,36 +86,6 @@ def enrich(playlist):
     for track in playlist["tracks"]:
         track["links"] = track_urls(track)
     return playlist
-
-
-def send_document(chat_id, filename, content, caption=""):
-    boundary = "----pTp" + uuid.uuid4().hex
-    body = bytearray()
-
-    def field(name, value):
-        body.extend(("--%s\r\n" % boundary).encode())
-        body.extend(('Content-Disposition: form-data; name="%s"\r\n\r\n' % name).encode())
-        body.extend(str(value).encode("utf-8"))
-        body.extend(b"\r\n")
-
-    field("chat_id", chat_id)
-    if caption:
-        field("caption", caption[:1000])
-    body.extend(("--%s\r\n" % boundary).encode())
-    body.extend(('Content-Disposition: form-data; name="document"; filename="%s"\r\n' % filename).encode())
-    body.extend(b"Content-Type: application/octet-stream\r\n\r\n")
-    body.extend(content)
-    body.extend(b"\r\n")
-    body.extend(("--%s--\r\n" % boundary).encode())
-
-    req = urllib.request.Request(
-        TG + "/sendDocument",
-        data=bytes(body),
-        headers={"Content-Type": "multipart/form-data; boundary=%s" % boundary},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        return json.loads(resp.read().decode("utf-8", "replace"))
 
 
 def build_prompt(phrase, count):
@@ -253,7 +222,7 @@ def generate(phrase):
     body = {
         "model": MODEL,
         "temperature": 0.85,
-        "max_tokens": 2000,
+        "max_tokens": 4000,
         "messages": [
             {"role": "system", "content": "You are a concise music curator. Reply with a single valid JSON object and nothing else."},
             {"role": "user", "content": build_prompt(phrase, TRACKS)},
@@ -288,83 +257,69 @@ def generate(phrase):
     raise RuntimeError(last or "generation failed")
 
 
-def slug(text):
-    return re.sub(r"[^a-z0-9]+", "-", (text or "playlist").lower()).strip("-") or "playlist"
-
-
-def to_json(playlist):
-    return json.dumps(playlist, indent=2, ensure_ascii=False).encode("utf-8")
-
-
-def to_m3u(playlist):
-    lines = ["#EXTM3U", "#PLAYLIST:%s" % (playlist.get("name") or "Playlist")]
-    for track in playlist["tracks"]:
-        lines.append("#EXTINF:-1,%s - %s" % (track.get("artist") or "Unknown", track.get("title") or "Untitled"))
-        lines.append(track.get("links", {}).get("youtube") or track_urls(track)["youtube"])
-    return ("\n".join(lines) + "\n").encode("utf-8")
-
-
 HELP = (
     "Send me a phrase and I'll build a playlist.\n\n"
     "Example:\n"
     "rainy Sunday morning, warm coffee, no plans\n\n"
-    "I reply with the playlist name, official Spotify/YouTube links for every track, "
-    "and two files:\n"
-    "- .m3u playlist file (opens in most players)\n"
-    "- .json data file (titles, artists, why, links)"
+    "I reply with the playlist name and every track, each with "
+    "official Spotify / YouTube / YouTube Music links."
 )
 
 
 def handle(chat_id, text):
     phrase = text.strip()
+    if not phrase:
+        send_message(chat_id, "Send me a phrase and I'll build a playlist.")
+        return
     if phrase in ("/start", "/help", "help"):
         send_message(chat_id, HELP)
         return
-    send_message(chat_id, "Building your playlist for: %s" % phrase)
+
+    try:
+        send_message(chat_id, "Building your playlist for: %s" % phrase)
+    except Exception as e:
+        sys.stderr.write("notify failed: %s\n" % e)
+
     try:
         playlist = generate(phrase)
     except Exception as e:
-        send_message(chat_id, "Sorry, that failed: %s" % e)
+        sys.stderr.write("generate failed: %s\n" % e)
+        send_message(chat_id, "Sorry, that failed.\n\nReason: %s" % e)
         return
+
     if not playlist:
-        send_message(chat_id, "The model did not return a usable playlist. Try rephrasing.")
+        send_message(chat_id, "The model did not return a usable playlist. Try rephrasing your phrase.")
         return
 
-    enrich(playlist)
-    name = playlist.get("name") or "Your playlist"
-    desc = playlist.get("description") or ""
-    tracks = playlist["tracks"]
-    caption = "%s\n%s\n\n%d tracks" % (name, desc, len(tracks))
-
     try:
-        send_document(chat_id, slug(name) + ".m3u", to_m3u(playlist), caption)
-    except Exception as e:
-        sys.stderr.write("m3u send failed: %s\n" % e)
-    try:
-        send_document(chat_id, slug(name) + ".json", to_json(playlist))
-    except Exception as e:
-        sys.stderr.write("json send failed: %s\n" % e)
+        enrich(playlist)
+        name = playlist.get("name") or "Your playlist"
+        desc = playlist.get("description") or ""
+        tracks = playlist["tracks"]
 
-    lines = ["<b>%s</b>" % escape_html(name)]
-    if desc:
-        lines.append(escape_html(desc))
-    lines.append("")
-    for i, track in enumerate(tracks):
-        links = track.get("links", {})
-        lines.append("<b>%d. %s</b> — %s" % (
-            i + 1,
-            escape_html(track.get("artist") or "Unknown artist"),
-            escape_html(track.get("title") or "Untitled"),
-        ))
-        if track.get("why"):
-            lines.append("<i>%s</i>" % escape_html(track["why"]))
-        lines.append('<a href="%s">Spotify</a> | <a href="%s">YouTube</a> | <a href="%s">YouTube Music</a>' % (
-            links.get("spotify", ""),
-            links.get("youtube", ""),
-            links.get("youtube_music", ""),
-        ))
+        lines = ["<b>%s</b>" % escape_html(name)]
+        if desc:
+            lines.append(escape_html(desc))
         lines.append("")
-    send_message(chat_id, "\n".join(lines), parse_mode="HTML")
+        for i, track in enumerate(tracks):
+            links = track.get("links", {})
+            lines.append("<b>%d. %s</b> — %s" % (
+                i + 1,
+                escape_html(track.get("artist") or "Unknown artist"),
+                escape_html(track.get("title") or "Untitled"),
+            ))
+            if track.get("why"):
+                lines.append("<i>%s</i>" % escape_html(track["why"]))
+            lines.append('<a href="%s">Spotify</a> | <a href="%s">YouTube</a> | <a href="%s">YouTube Music</a>' % (
+                links.get("spotify", ""),
+                links.get("youtube", ""),
+                links.get("youtube_music", ""),
+            ))
+            lines.append("")
+        send_message(chat_id, "\n".join(lines), parse_mode="HTML")
+    except Exception as e:
+        sys.stderr.write("render failed: %s\n" % e)
+        send_message(chat_id, "I built the playlist but could not format it.\n\nReason: %s" % e)
 
 
 def main():
@@ -389,7 +344,11 @@ def main():
                 chat_id = message["chat"]["id"]
                 text = message.get("text")
                 if text:
-                    handle(chat_id, text)
+                    try:
+                        handle(chat_id, text)
+                    except Exception as e:
+                        sys.stderr.write("handle failed: %s\n" % e)
+                        send_message(chat_id, "Unexpected error while handling that message.\n\nReason: %s" % e)
         except Exception as e:
             sys.stderr.write("polling error: %s\n" % e)
             time.sleep(3)
