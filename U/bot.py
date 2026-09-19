@@ -24,20 +24,54 @@ def http_json(url, payload=None, headers=None, timeout=120):
         return json.loads(resp.read().decode("utf-8", "replace"))
 
 
+def strip_html(text):
+    text = re.sub(r"<[^>]+>", "", text)
+    return (text.replace("&amp;", "&").replace("&lt;", "<")
+            .replace("&gt;", ">").replace("&quot;", '"'))
+
+
 def send_message(chat_id, text, parse_mode=None, reply_markup=None):
-    payload = {"chat_id": chat_id, "text": text[:4000], "disable_web_page_preview": True}
-    if parse_mode:
-        payload["parse_mode"] = parse_mode
-    if reply_markup:
-        payload["reply_markup"] = reply_markup
-    try:
-        http_json(TG + "/sendMessage", payload)
-    except Exception as e:
-        sys.stderr.write("sendMessage failed: %s\n" % e)
+    for chunk in split_message(text, 4000):
+        payload = {"chat_id": chunk, "disable_web_page_preview": True}
+        if parse_mode:
+            payload["parse_mode"] = parse_mode
+        if reply_markup:
+            payload["reply_markup"] = reply_markup
+        try:
+            http_json(TG + "/sendMessage", payload)
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", "replace")[:500]
+            sys.stderr.write("sendMessage failed: HTTP %s %s\n" % (e.code, body))
+            if parse_mode:
+                payload.pop("parse_mode", None)
+                payload["text"] = strip_html(chunk)
+                try:
+                    http_json(TG + "/sendMessage", payload)
+                except Exception as e2:
+                    sys.stderr.write("plain fallback failed: %s\n" % e2)
+        except Exception as e:
+            sys.stderr.write("sendMessage failed: %s\n" % e)
+
+
+def split_message(text, limit):
+    if len(text) <= limit:
+        return [text]
+    parts = []
+    current = ""
+    for line in text.split("\n"):
+        if len(current) + len(line) + 1 > limit:
+            parts.append(current)
+            current = line
+        else:
+            current = current + "\n" + line if current else line
+    if current:
+        parts.append(current)
+    return parts
 
 
 def escape_html(text):
-    return (str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    return (str(text).replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;"))
 
 
 def track_urls(track):
@@ -311,26 +345,26 @@ def handle(chat_id, text):
     except Exception as e:
         sys.stderr.write("json send failed: %s\n" % e)
 
-    header = "<b>%s</b>" % escape_html(name)
+    lines = ["<b>%s</b>" % escape_html(name)]
     if desc:
-        header += "\n%s" % escape_html(desc)
-    send_message(chat_id, header, parse_mode="HTML")
-
+        lines.append(escape_html(desc))
+    lines.append("")
     for i, track in enumerate(tracks):
         links = track.get("links", {})
-        line = "<b>%d. %s</b> — %s" % (
+        lines.append("<b>%d. %s</b> — %s" % (
             i + 1,
             escape_html(track.get("artist") or "Unknown artist"),
             escape_html(track.get("title") or "Untitled"),
-        )
+        ))
         if track.get("why"):
-            line += "\n<i>%s</i>" % escape_html(track["why"])
-        line += '\n<a href="%s">Spotify</a> | <a href="%s">YouTube</a> | <a href="%s">YouTube Music</a>' % (
+            lines.append("<i>%s</i>" % escape_html(track["why"]))
+        lines.append('<a href="%s">Spotify</a> | <a href="%s">YouTube</a> | <a href="%s">YouTube Music</a>' % (
             links.get("spotify", ""),
             links.get("youtube", ""),
             links.get("youtube_music", ""),
-        )
-        send_message(chat_id, line, parse_mode="HTML")
+        ))
+        lines.append("")
+    send_message(chat_id, "\n".join(lines), parse_mode="HTML")
 
 
 def main():
