@@ -1,0 +1,322 @@
+import os
+import re
+import sys
+import json
+import time
+import uuid
+import urllib.error
+import urllib.parse
+import urllib.request
+
+BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+API_KEY = os.environ.get("API_KEY", "").strip()
+BASE_URL = os.environ.get("UPSTREAM_BASE", "https://tokenharbor.ai/v1").rstrip("/")
+MODEL = os.environ.get("MODEL", "deepseek-v4.1-flash:free")
+TRACKS = os.environ.get("TRACKS", "8")
+
+TG = "https://api.telegram.org/bot%s" % BOT_TOKEN
+
+
+def http_json(url, payload=None, headers=None, timeout=120):
+    data = json.dumps(payload).encode() if payload is not None else None
+    req = urllib.request.Request(url, data=data, headers=headers or {}, method="POST" if data else "GET")
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8", "replace"))
+
+
+def send_message(chat_id, text):
+    try:
+        http_json(TG + "/sendMessage", {"chat_id": chat_id, "text": text[:4000], "disable_web_page_preview": True})
+    except Exception as e:
+        sys.stderr.write("sendMessage failed: %s\n" % e)
+
+
+def send_document(chat_id, filename, content, caption=""):
+    boundary = "----pTp" + uuid.uuid4().hex
+    body = bytearray()
+
+    def field(name, value):
+        body.extend(("--%s\r\n" % boundary).encode())
+        body.extend(('Content-Disposition: form-data; name="%s"\r\n\r\n' % name).encode())
+        body.extend(str(value).encode("utf-8"))
+        body.extend(b"\r\n")
+
+    field("chat_id", chat_id)
+    if caption:
+        field("caption", caption[:1000])
+    body.extend(("--%s\r\n" % boundary).encode())
+    body.extend(('Content-Disposition: form-data; name="document"; filename="%s"\r\n' % filename).encode())
+    body.extend(b"Content-Type: application/octet-stream\r\n\r\n")
+    body.extend(content)
+    body.extend(b"\r\n")
+    body.extend(("--%s--\r\n" % boundary).encode())
+
+    req = urllib.request.Request(
+        TG + "/sendDocument",
+        data=bytes(body),
+        headers={"Content-Type": "multipart/form-data; boundary=%s" % boundary},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        return json.loads(resp.read().decode("utf-8", "replace"))
+
+
+def build_prompt(phrase, count):
+    return "\n".join([
+        "You are a music curator. Build a playlist for this request:",
+        '"%s"' % phrase,
+        "",
+        "Constraints:",
+        "- Exactly %s tracks." % count,
+        "- Use real, existing songs with correct artist names.",
+        "- Avoid repeating the same artist more than twice.",
+        "",
+        "Return ONLY valid JSON with this exact shape, no markdown, no commentary:",
+        '{"name":"<catchy playlist title>","description":"<one sentence about the vibe>","tracks":[{"title":"<song>","artist":"<artist>","why":"<max 12 words on why it fits>"}]}',
+    ])
+
+
+def sanitize(strv):
+    return (strv.lstrip("\uFEFF")
+            .replace("\u201c", '"').replace("\u201d", '"')
+            .replace("\u2018", "'").replace("\u2019", "'")
+            .replace(",]", "]").replace(",}", "}"))
+
+
+def repair(strv):
+    out = []
+    in_str = False
+    quote = ""
+    i = 0
+    while i < len(strv):
+        ch = strv[i]
+        if in_str:
+            if ch == "\\":
+                out.append(ch + (strv[i + 1] if i + 1 < len(strv) else ""))
+                i += 2
+                continue
+            if ch == quote:
+                in_str = False
+                out.append('"')
+            elif ch == '"':
+                out.append('\\"')
+            elif ch == "\n":
+                out.append("\\n")
+            elif ch != "\r":
+                out.append(ch)
+        else:
+            if ch in ('"', "'"):
+                in_str = True
+                quote = ch
+                out.append('"')
+            else:
+                out.append(ch)
+        i += 1
+    text = "".join(out)
+    text = re.sub(r"//[^\n]*", "", text)
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+    text = re.sub(r"([{,]\s*)([A-Za-z_][A-Za-z0-9_]*)\s*:", r'\1"\2":', text)
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    text = re.sub(r"\bNaN\b", "null", text)
+    text = re.sub(r"\bNone\b", "null", text)
+    text = re.sub(r"\bTrue\b", "true", text)
+    text = re.sub(r"\bFalse\b", "false", text)
+    return text
+
+
+def parse_loose(text):
+    for attempt in (text, sanitize(text), repair(text), repair(sanitize(text))):
+        try:
+            return json.loads(attempt)
+        except Exception:
+            pass
+    return None
+
+
+def extract_json(text):
+    if not text:
+        raise ValueError("empty response")
+    cleaned = re.sub(r"^```[a-zA-Z]*\s*", "", text.strip())
+    cleaned = re.sub(r"```\s*$", "", cleaned).strip()
+
+    direct = parse_loose(cleaned)
+    if direct:
+        return direct
+
+    start, end = cleaned.find("{"), cleaned.rfind("}")
+    if start != -1 and end > start:
+        sliced = parse_loose(cleaned[start:end + 1])
+        if sliced:
+            return sliced
+
+    a, b = cleaned.find("["), cleaned.rfind("]")
+    if a != -1 and b > a:
+        arr = parse_loose(cleaned[a:b + 1])
+        if isinstance(arr, list):
+            return {"name": "Your playlist", "description": "", "tracks": arr}
+
+    raise ValueError("could not parse JSON: %s" % cleaned[:300])
+
+
+def normalize(value):
+    if not value:
+        return None
+    if isinstance(value, list):
+        value = {"name": "Your playlist", "description": "", "tracks": value}
+    for key in ("playlist", "result", "data", "response"):
+        if isinstance(value.get(key), (dict, list)):
+            nested = normalize(value[key])
+            if nested:
+                return nested
+    if not value.get("tracks") and value.get("songs"):
+        value["tracks"] = value["songs"]
+    tracks = value.get("tracks")
+    if not isinstance(tracks, list):
+        return None
+    clean = []
+    for track in tracks:
+        if isinstance(track, str):
+            clean.append({"title": track, "artist": "", "why": ""})
+            continue
+        if not isinstance(track, dict):
+            continue
+        title = str(track.get("title") or track.get("name") or track.get("song") or track.get("track") or "").strip()
+        artist = str(track.get("artist") or track.get("by") or track.get("artist_name") or "").strip()
+        why = str(track.get("why") or track.get("reason") or track.get("note") or "").strip()
+        if title:
+            clean.append({"title": title, "artist": artist, "why": why})
+    if not clean:
+        return None
+    value["tracks"] = clean
+    return value
+
+
+def generate(phrase):
+    body = {
+        "model": MODEL,
+        "temperature": 0.85,
+        "max_tokens": 2000,
+        "messages": [
+            {"role": "system", "content": "You are a concise music curator. Reply with a single valid JSON object and nothing else."},
+            {"role": "user", "content": build_prompt(phrase, TRACKS)},
+        ],
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + API_KEY,
+        "Accept": "application/json",
+        "User-Agent": "PhraseToPlaylistBot/1.0",
+    }
+    last = None
+    for attempt in range(3):
+        try:
+            data = http_json(BASE_URL + "/chat/completions", body, headers)
+            choice = (data.get("choices") or [{}])[0]
+            message = choice.get("message") or {}
+            content = message.get("content") or message.get("reasoning_content") or choice.get("text") or ""
+            if isinstance(content, list):
+                content = "".join(p.get("text", "") if isinstance(p, dict) else "" for p in content)
+            if not str(content).strip():
+                raise ValueError("model returned an empty response")
+            return normalize(extract_json(str(content)))
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")[:300]
+            last = "API %d: %s" % (e.code, detail)
+            if e.code < 500:
+                break
+        except Exception as e:
+            last = "%s: %s" % (type(e).__name__, e)
+        time.sleep(1 + attempt)
+    raise RuntimeError(last or "generation failed")
+
+
+def slug(text):
+    return re.sub(r"[^a-z0-9]+", "-", (text or "playlist").lower()).strip("-") or "playlist"
+
+
+def to_json(playlist):
+    return json.dumps(playlist, indent=2, ensure_ascii=False).encode("utf-8")
+
+
+def to_m3u(playlist):
+    lines = ["#EXTM3U", "#PLAYLIST:%s" % (playlist.get("name") or "Playlist")]
+    for track in playlist["tracks"]:
+        query = urllib.parse.quote((" ".join([track.get("title", ""), track.get("artist", "")])).strip())
+        lines.append("#EXTINF:-1,%s - %s" % (track.get("artist") or "Unknown", track.get("title") or "Untitled"))
+        lines.append("https://www.youtube.com/results?search_query=" + query)
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+HELP = (
+    "Send me a phrase and I'll build a playlist.\n\n"
+    "Example:\n"
+    "rainy Sunday morning, warm coffee, no plans\n\n"
+    "I reply with the playlist name plus two files:\n"
+    "- .m3u playlist file (opens in most players)\n"
+    "- .json data file (titles, artists, links)"
+)
+
+
+def handle(chat_id, text):
+    phrase = text.strip()
+    if phrase in ("/start", "/help", "help"):
+        send_message(chat_id, HELP)
+        return
+    send_message(chat_id, "Building your playlist for: %s" % phrase)
+    try:
+        playlist = generate(phrase)
+    except Exception as e:
+        send_message(chat_id, "Sorry, that failed: %s" % e)
+        return
+    if not playlist:
+        send_message(chat_id, "The model did not return a usable playlist. Try rephrasing.")
+        return
+
+    name = playlist.get("name") or "Your playlist"
+    desc = playlist.get("description") or ""
+    tracks = playlist["tracks"]
+    caption = "%s\n%s\n\n%d tracks" % (name, desc, len(tracks))
+
+    try:
+        send_document(chat_id, slug(name) + ".m3u", to_m3u(playlist), caption)
+    except Exception as e:
+        sys.stderr.write("m3u send failed: %s\n" % e)
+    try:
+        send_document(chat_id, slug(name) + ".json", to_json(playlist))
+    except Exception as e:
+        sys.stderr.write("json send failed: %s\n" % e)
+
+    listing = "\n".join("%d. %s - %s" % (i + 1, t.get("artist") or "?", t.get("title")) for i, t in enumerate(tracks))
+    send_message(chat_id, "%s\n\n%s" % (name, listing))
+
+
+def main():
+    if not BOT_TOKEN:
+        sys.exit("TELEGRAM_BOT_TOKEN is not set.")
+    if not API_KEY:
+        sys.exit("API_KEY is not set.")
+    print("Bot started. Upstream %s, model %s" % (BASE_URL, MODEL))
+    offset = None
+    while True:
+        try:
+            params = {"timeout": 50}
+            if offset is not None:
+                params["offset"] = offset
+            url = TG + "/getUpdates?" + urllib.parse.urlencode(params)
+            data = http_json(url, timeout=60)
+            for update in data.get("result", []):
+                offset = update["update_id"] + 1
+                message = update.get("message") or update.get("edited_message")
+                if not message:
+                    continue
+                chat_id = message["chat"]["id"]
+                text = message.get("text")
+                if text:
+                    handle(chat_id, text)
+        except Exception as e:
+            sys.stderr.write("polling error: %s\n" % e)
+            time.sleep(3)
+
+
+if __name__ == "__main__":
+    main()
