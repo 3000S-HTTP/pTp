@@ -24,11 +24,35 @@ def http_json(url, payload=None, headers=None, timeout=120):
         return json.loads(resp.read().decode("utf-8", "replace"))
 
 
-def send_message(chat_id, text):
+def send_message(chat_id, text, parse_mode=None, reply_markup=None):
+    payload = {"chat_id": chat_id, "text": text[:4000], "disable_web_page_preview": True}
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
     try:
-        http_json(TG + "/sendMessage", {"chat_id": chat_id, "text": text[:4000], "disable_web_page_preview": True})
+        http_json(TG + "/sendMessage", payload)
     except Exception as e:
         sys.stderr.write("sendMessage failed: %s\n" % e)
+
+
+def escape_html(text):
+    return (str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+
+
+def track_urls(track):
+    query = urllib.parse.quote((str(track.get("title") or "") + " " + str(track.get("artist") or "")).strip())
+    return {
+        "youtube": "https://www.youtube.com/results?search_query=" + query,
+        "youtube_music": "https://music.youtube.com/search?q=" + query,
+        "spotify": "https://open.spotify.com/search/" + query,
+    }
+
+
+def enrich(playlist):
+    for track in playlist["tracks"]:
+        track["links"] = track_urls(track)
+    return playlist
 
 
 def send_document(chat_id, filename, content, caption=""):
@@ -241,9 +265,8 @@ def to_json(playlist):
 def to_m3u(playlist):
     lines = ["#EXTM3U", "#PLAYLIST:%s" % (playlist.get("name") or "Playlist")]
     for track in playlist["tracks"]:
-        query = urllib.parse.quote((" ".join([track.get("title", ""), track.get("artist", "")])).strip())
         lines.append("#EXTINF:-1,%s - %s" % (track.get("artist") or "Unknown", track.get("title") or "Untitled"))
-        lines.append("https://www.youtube.com/results?search_query=" + query)
+        lines.append(track.get("links", {}).get("youtube") or track_urls(track)["youtube"])
     return ("\n".join(lines) + "\n").encode("utf-8")
 
 
@@ -251,9 +274,10 @@ HELP = (
     "Send me a phrase and I'll build a playlist.\n\n"
     "Example:\n"
     "rainy Sunday morning, warm coffee, no plans\n\n"
-    "I reply with the playlist name plus two files:\n"
+    "I reply with the playlist name, official Spotify/YouTube links for every track, "
+    "and two files:\n"
     "- .m3u playlist file (opens in most players)\n"
-    "- .json data file (titles, artists, links)"
+    "- .json data file (titles, artists, why, links)"
 )
 
 
@@ -272,6 +296,7 @@ def handle(chat_id, text):
         send_message(chat_id, "The model did not return a usable playlist. Try rephrasing.")
         return
 
+    enrich(playlist)
     name = playlist.get("name") or "Your playlist"
     desc = playlist.get("description") or ""
     tracks = playlist["tracks"]
@@ -286,8 +311,26 @@ def handle(chat_id, text):
     except Exception as e:
         sys.stderr.write("json send failed: %s\n" % e)
 
-    listing = "\n".join("%d. %s - %s" % (i + 1, t.get("artist") or "?", t.get("title")) for i, t in enumerate(tracks))
-    send_message(chat_id, "%s\n\n%s" % (name, listing))
+    header = "<b>%s</b>" % escape_html(name)
+    if desc:
+        header += "\n%s" % escape_html(desc)
+    send_message(chat_id, header, parse_mode="HTML")
+
+    for i, track in enumerate(tracks):
+        links = track.get("links", {})
+        line = "<b>%d. %s</b> — %s" % (
+            i + 1,
+            escape_html(track.get("artist") or "Unknown artist"),
+            escape_html(track.get("title") or "Untitled"),
+        )
+        if track.get("why"):
+            line += "\n<i>%s</i>" % escape_html(track["why"])
+        line += '\n<a href="%s">Spotify</a> | <a href="%s">YouTube</a> | <a href="%s">YouTube Music</a>' % (
+            links.get("spotify", ""),
+            links.get("youtube", ""),
+            links.get("youtube_music", ""),
+        )
+        send_message(chat_id, line, parse_mode="HTML")
 
 
 def main():
