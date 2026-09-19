@@ -31,7 +31,7 @@ def strip_html(text):
 
 def send_message(chat_id, text, parse_mode=None, reply_markup=None):
     for chunk in split_message(text, 4000):
-        payload = {"chat_id": chunk, "disable_web_page_preview": True}
+        payload = {"chat_id": chat_id, "text": chunk, "disable_web_page_preview": True}
         if parse_mode:
             payload["parse_mode"] = parse_mode
         if reply_markup:
@@ -328,6 +328,11 @@ def main():
     if not API_KEY:
         sys.exit("API_KEY is not set.")
     print("Bot started. Upstream %s, model %s" % (BASE_URL, MODEL))
+    try:
+        http_json(TG + "/deleteWebhook", {"drop_pending_updates": False})
+        print("Webhook cleared; using long polling.")
+    except Exception as e:
+        sys.stderr.write("deleteWebhook failed: %s\n" % e)
     offset = None
     while True:
         try:
