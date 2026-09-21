@@ -90,38 +90,6 @@ Hosting notes:
 - The site is public, but keys live in each visitor's browser `localStorage` and are never stored server-side. The proxy forwards whatever key a visitor supplies.
 - Railway's trial credit expires; an always-on service needs a paid plan. For a $0 always-on setup, run the app on your own device.
 
-## Telegram bot
-
-`bot.py` is a Telegram bot version. Type a phrase and it replies with the playlist name and every track as regular chat messages, each with official Spotify / YouTube / YouTube Music links. It sends links only — it does not download or send audio. If anything fails, the bot reports the reason in the chat.
-
-### Create the bot
-
-1. Open Telegram, message [@BotFather](https://t.me/BotFather), send `/newbot`, follow the prompts.
-2. Copy the bot token it gives you.
-
-### Run it locally
-
-```bash
-set TELEGRAM_BOT_TOKEN=123456:ABC...
-set API_KEY=your-provider-key
-python bot.py
-```
-
-### Deploy as a Railway service
-
-1. In the same Railway project, click **New** → **GitHub Repo** → pick the repo again (create a second service).
-2. Set the root directory to `U/bot` (not `U` — the bot folder has its own start command).
-3. Leave the start command as-is; `bot/railway.json` and `bot/Procfile` already run `python bot.py`.
-4. Add **Variables**:
-   - `TELEGRAM_BOT_TOKEN` — from BotFather.
-   - `API_KEY` — your provider key.
-   - `UPSTREAM_BASE` — optional, defaults to `https://tokenharbor.ai/v1`.
-   - `MODEL` — optional, defaults to `deepseek-v4.1-flash:free`.
-   - `TRACKS` — optional, default `20`.
-5. Deploy. Send your bot a phrase on Telegram to test.
-
-The bot does not need a public port or health check — it uses long polling.
-
 ## Build the executable
 
 ```bash
@@ -136,7 +104,6 @@ The result is `dist/PhraseToPlaylist.exe`.
 ```
 playlist.html     the entire UI (HTML, CSS, JS)
 server.py         static server + API proxy, auto-opens the browser
-bot/bot.py        Telegram bot (phrase -> text playlist with official links)
 Procfile          Railway start command
 railway.json      Railway build/deploy config with health check
 requirements.txt  empty (standard library only)
