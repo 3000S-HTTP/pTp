@@ -174,6 +174,13 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(405, "Only /proxy/* accepts POST")
 
 
+def run_local(port=0, host="127.0.0.1"):
+    server = ThreadingHTTPServer((host, port), Handler)
+    actual_port = server.server_address[1]
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    return actual_port
+
+
 def main():
     if ENV_PORT:
         try:

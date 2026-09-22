@@ -90,20 +90,36 @@ Hosting notes:
 - The site is public, but keys live in each visitor's browser `localStorage` and are never stored server-side. The proxy forwards whatever key a visitor supplies.
 - Railway's trial credit expires; an always-on service needs a paid plan. For a $0 always-on setup, run the app on your own device.
 
-## Build the executable
+## Windows desktop app
+
+`desktop/app.py` wraps the app in a native window using **WebView2** (the Edge Chromium runtime) via pywebview. It starts the bundled local server on a free port and opens `playlist.html` in an app window, so it runs as a normal desktop program with no browser tabs and no console window.
+
+Download `PhraseToPlaylistDesktop.exe` from the [Releases](../../releases) page, or build it:
+
+```bash
+python -m pip install pyinstaller pywebview pythonnet
+python -m PyInstaller --noconfirm --onefile --windowed --name "PhraseToPlaylistDesktop" --add-data "playlist.html;." --hidden-import server --collect-all webview --collect-all pythonnet --collect-all clr_loader desktop/app.py
+```
+
+The result is `dist/PhraseToPlaylistDesktop.exe`.
+
+Requirements: Windows 10/11. The WebView2 runtime is preinstalled on current Windows; if the window is blank, install the WebView2 Runtime from Microsoft.
+
+## Build the console/server executable
 
 ```bash
 python -m pip install pyinstaller
 python -m PyInstaller --noconfirm --onefile --name "PhraseToPlaylist" --add-data "playlist.html;." --console server.py
 ```
 
-The result is `dist/PhraseToPlaylist.exe`.
+The result is `dist/PhraseToPlaylist.exe`. This version runs the local server and opens your default browser.
 
 ## Project layout
 
 ```
 playlist.html     the entire UI (HTML, CSS, JS)
 server.py         static server + API proxy, auto-opens the browser
+desktop/app.py    WebView2 desktop wrapper (Windows exe)
 Procfile          Railway start command
 railway.json      Railway build/deploy config with health check
 requirements.txt  empty (standard library only)
