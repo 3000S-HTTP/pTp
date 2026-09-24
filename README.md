@@ -14,6 +14,8 @@ Describe a mood, a moment, or a vibe and the app asks an AI model to return real
 - **Local proxy built in** — many providers do not send CORS headers, so the browser cannot call them directly. The bundled proxy forwards `/proxy/*` to the upstream API and adds CORS, so the UI works in Safari, Chrome, and mobile browsers.
 - **Works on your iPhone** — the server binds to your LAN and prints a URL you can open on your phone.
 - **Forgiving JSON parser** — handles markdown fences, single quotes, unquoted keys, trailing commas, wrapper objects, and plain-text track lists.
+- **Song previews** — every track has a **Preview** button that plays a 30-second clip (matched by title + artist against the public iTunes Search API). Lookups are cached after the first click, and a wrong/no match shows a status message instead of playing the wrong song.
+- **Installable themes** — Monochrome (default), Liquid Glass, Ocean, Sunset, and Neon. Install the ones you want, click a card to apply, uninstall to remove. Each theme has light and dark variants; your installed list is saved in the browser only.
 - **Monochrome compact UI** — black and white, light and dark.
 - **Single-file executable** — build a standalone `.exe` with PyInstaller.
 
@@ -48,6 +50,35 @@ Open **AI Settings** in the app:
 | **Model** | The model name for your provider. |
 
 Keys never leave your machine except in the request to the provider you configure. There is no analytics and no third-party backend.
+
+## Themes
+
+Open the **Themes** panel in the app footer:
+
+- **Install** — click *Install* on a theme in **Browse themes**. It is added to **Your themes** and applied immediately.
+- **Apply** — click any installed theme's card to switch to it. The active card is outlined.
+- **Uninstall** — click *Uninstall* on an installed theme. If it was active, the app falls back to Monochrome. **Monochrome is locked** and cannot be uninstalled.
+- **Light / Dark** — the *Dark / Light* button in the footer flips the current theme's variant. Each theme ships both variants.
+
+Installed themes and the active selection are stored in `localStorage` under `phrase-playlist-themes-v1`, per browser. Nothing is sent to the server.
+
+| Theme | Light | Dark |
+| --- | --- | --- |
+| Monochrome | white / black | black / white |
+| Liquid Glass | frosted panels over a violet gradient | dark frosted panels over indigo |
+| Ocean | pale blue panel over a teal gradient | deep navy over ocean blue |
+| Sunset | cream panel over orange→violet gradient | dark plum over sunset gradient |
+| Neon | white panel over pastel gradient, magenta borders | near-black panel, magenta/cyan glow |
+
+## Song previews
+
+Each track row has a **▶ Preview** button. Pressing it:
+
+1. Searches the public [iTunes Search API](https://developer.apple.com/library/archive/documentation/AudioVideo/Conceptual/iTuneSearchAPI/) for `title + artist` (no API key, CORS-enabled).
+2. Scores results by title/artist similarity and only plays at ≥ 0.55 — otherwise it reports *No preview found* instead of the wrong song.
+3. Plays a 30-second clip in one shared audio element; pressing again pauses, pressing again resumes. Generating a new playlist stops playback.
+
+Results are cached per track after the first click, so replays cost no extra requests. Previews need an internet connection.
 
 ### Provider examples
 

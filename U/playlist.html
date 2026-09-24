@@ -14,8 +14,14 @@
     --soft: #ededed;
     --inv-bg: #000000;
     --inv-fg: #ffffff;
+    --accent: #000000;
+    --panel-bg: var(--bg);
+    --bg-image: none;
+    --radius: 0px;
+    --border-w: 2px;
+    --shadow: none;
   }
-  [data-theme="dark"] {
+  [data-mode="dark"] {
     --bg: #000000;
     --fg: #ffffff;
     --muted: #a3a3a3;
@@ -23,18 +29,159 @@
     --soft: #1a1a1a;
     --inv-bg: #ffffff;
     --inv-fg: #000000;
+    --accent: #ffffff;
+  }
+
+  /* Installable themes: data-theme = palette, data-mode = light/dark.
+     data-theme="monochrome" matches nothing and falls back to the base rules. */
+  [data-theme="liquid"] {
+    --bg: #e9edf6;
+    --bg-image: linear-gradient(135deg, #9fb6ff 0%, #c9a3ff 48%, #ffb3c7 100%);
+    --fg: #101828;
+    --muted: #4a5568;
+    --border: rgba(255, 255, 255, 0.75);
+    --soft: rgba(255, 255, 255, 0.55);
+    --inv-bg: #101828;
+    --inv-fg: #ffffff;
+    --accent: #4f46e5;
+    --panel-bg: rgba(255, 255, 255, 0.55);
+    --radius: 16px;
+    --border-w: 1px;
+    --shadow: 0 10px 30px rgba(16, 24, 40, 0.18);
+  }
+  [data-theme="liquid"][data-mode="dark"] {
+    --bg: #0f1424;
+    --bg-image: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f172a 100%);
+    --fg: #f1f5f9;
+    --muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.2);
+    --soft: rgba(255, 255, 255, 0.1);
+    --inv-bg: #f1f5f9;
+    --inv-fg: #0f1424;
+    --accent: #818cf8;
+    --panel-bg: rgba(15, 20, 36, 0.55);
+    --radius: 16px;
+    --border-w: 1px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+  [data-theme="liquid"] .container {
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+  }
+
+  [data-theme="ocean"] {
+    --bg: #eaf6fb;
+    --bg-image: linear-gradient(165deg, #14b8c4 0%, #0b7bb5 55%, #0a4f80 100%);
+    --fg: #082f49;
+    --muted: #486581;
+    --border: #0e7490;
+    --soft: #dff3fa;
+    --inv-bg: #0369a1;
+    --inv-fg: #ffffff;
+    --accent: #0891b2;
+    --panel-bg: #f4fbfe;
+    --radius: 10px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(3, 58, 110, 0.28);
+  }
+  [data-theme="ocean"][data-mode="dark"] {
+    --bg: #04141f;
+    --bg-image: linear-gradient(165deg, #02111b 0%, #05273c 55%, #0a4257 100%);
+    --fg: #e0f2fe;
+    --muted: #8fb3c7;
+    --border: #155e75;
+    --soft: #0a2a3c;
+    --inv-bg: #38bdf8;
+    --inv-fg: #04141f;
+    --accent: #22d3ee;
+    --panel-bg: rgba(6, 32, 47, 0.88);
+    --radius: 10px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="sunset"] {
+    --bg: #fff4ea;
+    --bg-image: linear-gradient(160deg, #ff9a3c 0%, #ff5e62 52%, #a34d8f 100%);
+    --fg: #3b1408;
+    --muted: #8a5a49;
+    --border: #e2693a;
+    --soft: #ffe8d9;
+    --inv-bg: #e2482a;
+    --inv-fg: #fff7f0;
+    --accent: #f97316;
+    --panel-bg: #fffaf5;
+    --radius: 12px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(120, 40, 10, 0.28);
+  }
+  [data-theme="sunset"][data-mode="dark"] {
+    --bg: #1c0f16;
+    --bg-image: linear-gradient(160deg, #431407 0%, #7c2d12 52%, #831843 100%);
+    --fg: #ffe9dd;
+    --muted: #d3a693;
+    --border: #c2410c;
+    --soft: #33171d;
+    --inv-bg: #fb923c;
+    --inv-fg: #1c0f16;
+    --accent: #fdba74;
+    --panel-bg: rgba(28, 15, 22, 0.88);
+    --radius: 12px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="neon"] {
+    --bg: #f5f7ff;
+    --bg-image: linear-gradient(160deg, #e0e7ff 0%, #fce7f3 55%, #cffafe 100%);
+    --fg: #111827;
+    --muted: #4b5563;
+    --border: #d946ef;
+    --soft: #ede9fe;
+    --inv-bg: #d946ef;
+    --inv-fg: #ffffff;
+    --accent: #0891b2;
+    --panel-bg: #ffffff;
+    --radius: 4px;
+    --border-w: 2px;
+    --shadow: 0 0 18px rgba(217, 70, 239, 0.25);
+  }
+  [data-theme="neon"][data-mode="dark"] {
+    --bg: #07060d;
+    --bg-image: linear-gradient(160deg, #0b0a14 0%, #1a0b2e 55%, #04131f 100%);
+    --fg: #f5f3ff;
+    --muted: #a5a0c0;
+    --border: #d946ef;
+    --soft: #160f28;
+    --inv-bg: #d946ef;
+    --inv-fg: #0a0914;
+    --accent: #22d3ee;
+    --panel-bg: rgba(10, 9, 20, 0.82);
+    --radius: 4px;
+    --border-w: 2px;
+    --shadow: 0 0 22px rgba(217, 70, 239, 0.4);
+  }
+  [data-theme="neon"] .generate { box-shadow: 0 0 14px rgba(217, 70, 239, 0.45); }
+  [data-theme="neon"][data-mode="dark"] .generate {
+    box-shadow: 0 0 16px rgba(217, 70, 239, 0.6), 0 0 34px rgba(34, 211, 238, 0.3);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', system-ui, sans-serif; }
   body {
     min-height: 100vh;
-    background: var(--bg); color: var(--fg);
+    background-color: var(--bg);
+    background-image: var(--bg-image);
+    background-attachment: fixed;
+    background-size: cover;
+    color: var(--fg);
     display: flex; justify-content: center; align-items: flex-start;
     padding: 18px 14px 40px;
   }
   .container {
-    background: var(--bg);
-    border: 2px solid var(--border);
+    background: var(--panel-bg);
+    border: var(--border-w) solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     max-width: 680px; width: 100%;
     padding: 18px;
   }
@@ -44,11 +191,11 @@
 
   label { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; font-weight: 700; }
   input, textarea, select {
-    width: 100%; padding: 8px 10px; border-radius: 0;
-    border: 1.5px solid var(--border); background: var(--bg);
+    width: 100%; padding: 8px 10px; border-radius: calc(var(--radius) * 0.6);
+    border: 1.5px solid var(--border); background: var(--panel-bg);
     color: var(--fg); font-size: 0.85rem; outline: none;
   }
-  input:focus, textarea:focus, select:focus { outline: 2px solid var(--fg); outline-offset: 1px; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   textarea { resize: vertical; min-height: 54px; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; }
   .row > .col { flex: 1; min-width: 120px; }
@@ -56,21 +203,21 @@
   input::placeholder, textarea::placeholder { color: var(--muted); }
 
   .generate {
-    width: 100%; padding: 11px; border: 2px solid var(--border); border-radius: 0; cursor: pointer;
+    width: 100%; padding: 11px; border: var(--border-w) solid var(--border); border-radius: var(--radius); cursor: pointer;
     background: var(--inv-bg); color: var(--inv-fg); font-size: 0.9rem; font-weight: 700;
     text-transform: uppercase; letter-spacing: 1px;
   }
-  .generate:hover:not(:disabled) { background: var(--bg); color: var(--fg); }
+  .generate:hover:not(:disabled) { background: var(--panel-bg); color: var(--fg); }
   .generate:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .ghost {
-    background: var(--bg); color: var(--fg); border: 1.5px solid var(--border);
-    border-radius: 0; padding: 6px 11px; cursor: pointer; font-size: 0.72rem;
+    background: var(--panel-bg); color: var(--fg); border: 1.5px solid var(--border);
+    border-radius: calc(var(--radius) * 0.6); padding: 6px 11px; cursor: pointer; font-size: 0.72rem;
     font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
   }
   .ghost:hover { background: var(--inv-bg); color: var(--inv-fg); }
 
-  .panel { border: 1.5px solid var(--border); border-radius: 0; padding: 11px; margin-bottom: 12px; }
+  .panel { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 11px; margin-bottom: 12px; background: var(--panel-bg); }
   .panel-toggle {
     display: flex; justify-content: space-between; align-items: center; gap: 8px;
     cursor: pointer; user-select: none; font-weight: 700; font-size: 0.72rem;
@@ -97,7 +244,7 @@
   .results-head .actions { display: flex; gap: 6px; }
   .meta { color: var(--muted); font-size: 0.75rem; margin-bottom: 10px; line-height: 1.45; }
 
-  ul.tracks { list-style: none; display: flex; flex-direction: column; gap: 0; border: 1.5px solid var(--border); }
+  ul.tracks { list-style: none; display: flex; flex-direction: column; gap: 0; border: 1.5px solid var(--border); border-radius: calc(var(--radius) * 0.6); overflow: hidden; }
   ul.tracks li {
     border-bottom: 1.5px solid var(--border);
     padding: 8px 10px;
@@ -108,17 +255,48 @@
   .track-title { font-weight: 700; font-size: 0.85rem; }
   .track-artist { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
   .track-why { font-size: 0.7rem; color: var(--muted); margin-top: 3px; line-height: 1.4; }
-  .track-links { display: flex; flex-direction: column; gap: 4px; }
-  .track-links a {
+  .track-links {
+    display: flex; flex-direction: column; gap: 4px; align-items: stretch;
+  }
+  .track-links a, .track-links button.preview {
     font-size: 0.65rem; text-decoration: none; color: var(--fg);
     border: 1.5px solid var(--border); padding: 3px 8px; text-align: center;
     font-weight: 700; text-transform: uppercase; white-space: nowrap;
+    background: var(--panel-bg); cursor: pointer; border-radius: calc(var(--radius) * 0.6);
+    font-family: inherit;
   }
-  .track-links a:hover { background: var(--inv-bg); color: var(--inv-fg); }
+  .track-links a:hover, .track-links button.preview:hover { background: var(--inv-bg); color: var(--inv-fg); }
+  .track-links button.preview.playing { background: var(--inv-bg); color: var(--inv-fg); }
+  .track-links button.preview.loading { opacity: 0.6; cursor: progress; }
 
-  .empty { text-align: center; color: var(--muted); font-size: 0.75rem; padding: 18px 10px; border: 1.5px dashed var(--border); }
+  .empty { text-align: center; color: var(--muted); font-size: 0.75rem; padding: 18px 10px; border: 1.5px dashed var(--border); border-radius: calc(var(--radius) * 0.6); }
 
-  .footer { margin-top: 14px; display: flex; justify-content: center; gap: 8px; }
+  .footer { margin-top: 14px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+
+  .theme-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .theme-card {
+    display: flex; align-items: center; gap: 8px;
+    border: 1.5px solid var(--border); border-radius: calc(var(--radius) * 0.6);
+    padding: 7px 9px; cursor: pointer; background: var(--panel-bg);
+    flex: 1 1 180px; min-width: 160px;
+  }
+  .theme-card:hover { background: var(--soft); }
+  .theme-card.active { border-width: 2px; border-color: var(--accent); }
+  .theme-card .swatch {
+    width: 34px; height: 34px; flex: 0 0 auto;
+    border: 1.5px solid var(--border); border-radius: calc(var(--radius) * 0.6);
+    background-size: cover;
+  }
+  .theme-card .theme-meta { flex: 1; min-width: 0; }
+  .theme-card .theme-name { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .theme-card .theme-state { font-size: 0.62rem; color: var(--muted); }
+  .theme-card .theme-act {
+    font-size: 0.6rem; padding: 4px 7px; border: 1.5px solid var(--border);
+    background: var(--panel-bg); color: var(--fg); cursor: pointer;
+    border-radius: calc(var(--radius) * 0.6); font-weight: 700; text-transform: uppercase;
+    font-family: inherit; white-space: nowrap;
+  }
+  .theme-card .theme-act:hover { background: var(--inv-bg); color: var(--inv-fg); }
 
   #raw-output { font-size: 0.7rem; white-space: pre-wrap; word-break: break-word; margin-top: 10px; max-height: 260px; overflow: auto; }
 
@@ -209,7 +387,20 @@
   <div class="empty" id="empty">No playlist yet — type a phrase and hit generate.</div>
 
   <div class="footer">
-    <button class="ghost" id="theme-toggle">Toggle theme</button>
+    <button class="ghost" id="themes-toggle">Themes ▸</button>
+    <button class="ghost" id="theme-toggle">Dark / Light</button>
+  </div>
+
+  <div class="panel" id="themes-panel" hidden style="margin-top:10px">
+    <div class="panel-toggle">
+      <span>Theme manager</span>
+      <span>Installed / Browse</span>
+    </div>
+    <p class="hint">Click <b>Install</b> to add a theme to your library, then click its card to apply it. <b>Uninstall</b> removes it from your library (Monochrome is always installed and cannot be removed). Your installed list is saved in this browser only.</p>
+    <label style="margin-top:8px">Your themes</label>
+    <div class="theme-grid" id="installed-themes"></div>
+    <label style="margin-top:10px">Browse themes</label>
+    <div class="theme-grid" id="available-themes"></div>
   </div>
 </div>
 
@@ -237,14 +428,145 @@
     advArrow: document.getElementById('adv-arrow'),
     advanced: document.getElementById('advanced'),
     themeToggle: document.getElementById('theme-toggle'),
+    themesToggle: document.getElementById('themes-toggle'),
+    themesPanel: document.getElementById('themes-panel'),
+    installedThemes: document.getElementById('installed-themes'),
+    availableThemes: document.getElementById('available-themes'),
     rawPanel: document.getElementById('raw-panel'),
     rawOutput: document.getElementById('raw-output'),
   };
 
   const STORE_KEY = 'phrase-playlist-settings-v3';
+  const THEME_STORE_KEY = 'phrase-playlist-themes-v1';
   let lastPlaylist = null;
   let apiKeys = [];
   let rotationCursor = 0;
+
+  const THEME_DEFS = [
+    { id: 'monochrome', name: 'Monochrome', desc: 'The original black & white', locked: true,
+      light: { bg: '#ffffff', fg: '#000000', a: '#000000', accent: '#000000' },
+      dark:  { bg: '#000000', fg: '#ffffff', a: '#ffffff', accent: '#ffffff' } },
+    { id: 'liquid', name: 'Liquid Glass', desc: 'Frosted panels, blurred gradient',
+      light: { bg: '#e9edf6', fg: '#101828', a: '#4f46e5', accent: '#4f46e5' },
+      dark:  { bg: '#0f1424', fg: '#f1f5f9', a: '#818cf8', accent: '#818cf8' } },
+    { id: 'ocean', name: 'Ocean', desc: 'Deep sea blues and teal',
+      light: { bg: '#eaf6fb', fg: '#082f49', a: '#0891b2', accent: '#0891b2' },
+      dark:  { bg: '#04141f', fg: '#e0f2fe', a: '#22d3ee', accent: '#22d3ee' } },
+    { id: 'sunset', name: 'Sunset', desc: 'Warm orange, pink and violet',
+      light: { bg: '#fff4ea', fg: '#3b1408', a: '#f97316', accent: '#f97316' },
+      dark:  { bg: '#1c0f16', fg: '#ffe9dd', a: '#fdba74', accent: '#fdba74' } },
+    { id: 'neon', name: 'Neon', desc: 'Cyber glow, magenta and cyan',
+      light: { bg: '#f5f7ff', fg: '#111827', a: '#d946ef', accent: '#0891b2' },
+      dark:  { bg: '#07060d', fg: '#f5f3ff', a: '#d946ef', accent: '#22d3ee' } },
+  ];
+
+  let themeStore = { installed: ['monochrome'], active: 'monochrome' };
+
+  function loadThemeStore() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(THEME_STORE_KEY) || 'null');
+      if (raw && Array.isArray(raw.installed) && raw.installed.length) {
+        themeStore.installed = raw.installed.filter(id => THEME_DEFS.some(t => t.id === id));
+        if (!themeStore.installed.includes('monochrome')) themeStore.installed.unshift('monochrome');
+        themeStore.active = THEME_DEFS.some(t => t.id === raw.active) ? raw.active : 'monochrome';
+      }
+    } catch (e) {}
+  }
+
+  function saveThemeStore() {
+    localStorage.setItem(THEME_STORE_KEY, JSON.stringify(themeStore));
+  }
+
+  function currentMode() {
+    return document.documentElement.getAttribute('data-mode') === 'dark' ? 'dark' : 'light';
+  }
+
+  function applyTheme(id) {
+    const theme = THEME_DEFS.find(t => t.id === id) || THEME_DEFS[0];
+    themeStore.active = theme.id;
+    document.documentElement.setAttribute('data-theme', theme.id);
+    saveThemeStore();
+    renderThemeCards();
+  }
+
+  function swatchCss(theme) {
+    const c = (currentMode() === 'dark' ? theme.dark : theme.light);
+    return 'background:linear-gradient(135deg,' + c.bg + ',' + c.a + ',' + c.bg + ')';
+  }
+
+  function renderThemeCards() {
+    const mode = currentMode();
+    els.installedThemes.innerHTML = '';
+    els.availableThemes.innerHTML = '';
+
+    THEME_DEFS.forEach(theme => {
+      const installed = themeStore.installed.includes(theme.id);
+      const card = document.createElement('div');
+      card.className = 'theme-card' + (themeStore.active === theme.id ? ' active' : '');
+
+      const swatch = document.createElement('div');
+      swatch.className = 'swatch';
+      swatch.setAttribute('style', swatchCss(theme));
+
+      const meta = document.createElement('div');
+      meta.className = 'theme-meta';
+      const nm = document.createElement('div');
+      nm.className = 'theme-name';
+      nm.textContent = theme.name;
+      const st = document.createElement('div');
+      st.className = 'theme-state';
+      st.textContent = themeStore.active === theme.id ? 'Active · ' + mode : theme.desc;
+      meta.appendChild(nm);
+      meta.appendChild(st);
+
+      const act = document.createElement('button');
+      act.type = 'button';
+      act.className = 'theme-act';
+      if (!installed) {
+        act.textContent = 'Install';
+        act.addEventListener('click', e => {
+          e.stopPropagation();
+          themeStore.installed.push(theme.id);
+          saveThemeStore();
+          applyTheme(theme.id);
+          setStatus('Installed and applied "' + theme.name + '".', 'ok');
+        });
+      } else if (!theme.locked) {
+        act.textContent = 'Uninstall';
+        act.addEventListener('click', e => {
+          e.stopPropagation();
+          themeStore.installed = themeStore.installed.filter(x => x !== theme.id);
+          if (themeStore.active === theme.id) applyTheme('monochrome');
+          else { saveThemeStore(); renderThemeCards(); }
+          setStatus('Uninstalled "' + theme.name + '".', 'ok');
+        });
+      } else {
+        act.textContent = 'Default';
+        act.disabled = true;
+        act.style.opacity = '0.55';
+        act.style.cursor = 'not-allowed';
+      }
+
+      card.appendChild(swatch);
+      card.appendChild(meta);
+      card.appendChild(act);
+      card.addEventListener('click', () => {
+        if (installed) {
+          applyTheme(theme.id);
+          setStatus('Theme: ' + theme.name + ' (' + mode + ').', 'ok');
+        }
+      });
+
+      (installed ? els.installedThemes : els.availableThemes).appendChild(card);
+    });
+  }
+
+  els.themesToggle.addEventListener('click', () => {
+    const open = els.themesPanel.hidden;
+    els.themesPanel.hidden = !open;
+    els.themesToggle.textContent = open ? 'Themes ▾' : 'Themes ▸';
+    if (open) renderThemeCards();
+  });
 
   function newKeyId() {
     return 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -666,7 +988,108 @@
     setStatus(ok + ' of ' + keys.length + ' key(s) OK — ' + results.join(', '), ok ? 'ok' : 'error');
   }
 
+  const previewAudio = new Audio();
+  const previewCache = new Map();
+  let previewBtn = null;
+
+  function setPreviewState(btn, state) {
+    if (previewBtn && previewBtn !== btn) {
+      previewBtn.classList.remove('playing', 'loading');
+      previewBtn.textContent = '▶ Preview';
+    }
+    previewBtn = btn;
+    btn.classList.remove('playing', 'loading');
+    if (state === 'playing') { btn.classList.add('playing'); btn.textContent = '⏸ Playing'; }
+    else if (state === 'loading') { btn.classList.add('loading'); btn.textContent = '… Loading'; }
+    else btn.textContent = '▶ Preview';
+  }
+
+  function normStr(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function similarity(a, b) {
+    a = normStr(a); b = normStr(b);
+    if (!a || !b) return 0;
+    if (a === b) return 1;
+    const ta = a.split(' ').filter(Boolean), tb = b.split(' ').filter(Boolean);
+    if (!ta.length || !tb.length) return 0;
+    let shared = 0;
+    const tbSet = new Set(tb);
+    ta.forEach(w => { if (tbSet.has(w)) shared++; });
+    return shared / Math.max(ta.length, tb.length);
+  }
+
+  async function fetchPreview(track) {
+    const term = [track.title, track.artist].filter(Boolean).join(' ');
+    const url = 'https://itunes.apple.com/search?term=' + encodeURIComponent(term) + '&entity=song&limit=6';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const results = (data.results || []).filter(r => r.previewUrl);
+    if (!results.length) return null;
+
+    let best = null, bestScore = 0;
+    for (const r of results) {
+      const score = similarity(r.trackName, track.title) * 0.6 + similarity(r.artistName, track.artist) * 0.4;
+      if (score > bestScore) { bestScore = score; best = r; }
+    }
+    return bestScore >= 0.55 ? best : null;
+  }
+
+  async function togglePreview(track, btn) {
+    const key = (track.title + '|' + track.artist).toLowerCase();
+    const sameTrack = previewCache.get(key) && previewAudio.src === previewCache.get(key).previewUrl;
+
+    if (previewBtn === btn && sameTrack && !previewAudio.paused) {
+      previewAudio.pause();
+      setPreviewState(btn, 'idle');
+      return;
+    }
+    if (sameTrack && previewAudio.src) {
+      try {
+        if (previewAudio.ended) previewAudio.currentTime = 0;
+        await previewAudio.play();
+        setPreviewState(btn, 'playing');
+      } catch (e) { setStatus('Could not resume preview.', 'error'); }
+      return;
+    }
+
+    setPreviewState(btn, 'loading');
+    try {
+      let match = previewCache.get(key);
+      if (match === undefined) {
+        match = await fetchPreview(track);
+        previewCache.set(key, match);
+      }
+      if (!match) {
+        setPreviewState(btn, 'idle');
+        setStatus('No preview found for "' + track.title + '".', 'error');
+        return;
+      }
+      if (previewAudio.src !== match.previewUrl) {
+        previewAudio.src = match.previewUrl;
+      } else if (previewAudio.ended) {
+        previewAudio.currentTime = 0;
+      }
+      await previewAudio.play();
+      setPreviewState(btn, 'playing');
+    } catch (e) {
+      setPreviewState(btn, 'idle');
+      setStatus('Preview failed: ' + (e && e.message ? e.message : e), 'error');
+    }
+  }
+
+  previewAudio.addEventListener('ended', () => { if (previewBtn) setPreviewState(previewBtn, 'idle'); });
+
+  function stopAllPreviews() {
+    previewAudio.pause();
+    try { previewAudio.currentTime = 0; } catch (e) {}
+    if (previewBtn) setPreviewState(previewBtn, 'idle');
+  }
+
   function renderPlaylist(playlist) {
+    stopAllPreviews();
     lastPlaylist = playlist;
     els.playlistName.textContent = playlist.name || 'Your playlist';
     els.playlistMeta.textContent = playlist.description || '';
@@ -699,6 +1122,14 @@
       const links = document.createElement('div');
       links.className = 'track-links';
       const query = encodeURIComponent([track.title, track.artist].filter(Boolean).join(' '));
+
+      const preview = document.createElement('button');
+      preview.type = 'button';
+      preview.className = 'preview';
+      preview.textContent = '▶ Preview';
+      preview.addEventListener('click', () => togglePreview(track, preview));
+      links.appendChild(preview);
+
       const spotify = document.createElement('a');
       spotify.href = 'https://open.spotify.com/search/' + query;
       spotify.target = '_blank';
@@ -767,15 +1198,18 @@
   });
 
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const storedTheme = localStorage.getItem('theme');
-  document.documentElement.setAttribute('data-theme', storedTheme || (prefersDark ? 'dark' : 'light'));
+  const storedMode = localStorage.getItem('theme');
+  document.documentElement.setAttribute('data-mode', storedMode || (prefersDark ? 'dark' : 'light'));
 
   els.themeToggle.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
+    const next = currentMode() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-mode', next);
     localStorage.setItem('theme', next);
+    renderThemeCards();
   });
+
+  loadThemeStore();
+  applyTheme(themeStore.active);
 
   loadSettings();
 </script>
