@@ -6,6 +6,8 @@ Works with any OpenAI-compatible provider (including free ones), runs entirely o
 
 ![black and white, compact UI](https://img.shields.io/badge/UI-monochrome-black)
 
+**English** · [فارسی](README.fa.md)
+
 ## Contents
 
 - [Quick start](#quick-start)
