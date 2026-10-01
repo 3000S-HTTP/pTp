@@ -166,6 +166,161 @@
     box-shadow: 0 0 16px rgba(217, 70, 239, 0.6), 0 0 34px rgba(34, 211, 238, 0.3);
   }
 
+  [data-theme="forest"] {
+    --bg: #eef6ec;
+    --bg-image: linear-gradient(160deg, #6fbf7f 0%, #2f7d4f 55%, #1b5133 100%);
+    --fg: #10291a;
+    --muted: #4d6b57;
+    --border: #3f8f5b;
+    --soft: #e2f0dd;
+    --inv-bg: #2f7d4f;
+    --inv-fg: #ffffff;
+    --accent: #2f9e58;
+    --panel-bg: #f6fbf4;
+    --radius: 10px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(20, 70, 40, 0.28);
+  }
+  [data-theme="forest"][data-mode="dark"] {
+    --bg: #0a1610;
+    --bg-image: linear-gradient(160deg, #06120c 0%, #123a24 55%, #0a1f14 100%);
+    --fg: #e7f5ea;
+    --muted: #8fb6a0;
+    --border: #2f7d4f;
+    --soft: #10241a;
+    --inv-bg: #57d38c;
+    --inv-fg: #061510;
+    --accent: #57d38c;
+    --panel-bg: rgba(10, 25, 17, 0.9);
+    --radius: 10px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="sakura"] {
+    --bg: #fdf1f4;
+    --bg-image: linear-gradient(160deg, #ffd7e4 0%, #ffa6c1 50%, #e05a86 100%);
+    --fg: #3b1423;
+    --muted: #8a5a68;
+    --border: #e58aa9;
+    --soft: #ffe6ee;
+    --inv-bg: #d1547f;
+    --inv-fg: #fff5f8;
+    --accent: #e05a86;
+    --panel-bg: #fff8fa;
+    --radius: 14px;
+    --border-w: 1px;
+    --shadow: 0 8px 24px rgba(160, 60, 100, 0.25);
+  }
+  [data-theme="sakura"][data-mode="dark"] {
+    --bg: #1d0f16;
+    --bg-image: linear-gradient(160deg, #2b0f1c 0%, #4a1529 55%, #1a0d15 100%);
+    --fg: #ffe9f0;
+    --muted: #d3a0b0;
+    --border: #9d2f55;
+    --soft: #2e1520;
+    --inv-bg: #ff9ec0;
+    --inv-fg: #1d0f16;
+    --accent: #ffa6c1;
+    --panel-bg: rgba(30, 15, 22, 0.9);
+    --radius: 14px;
+    --border-w: 1px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="royal"] {
+    --bg: #f4f1fb;
+    --bg-image: linear-gradient(160deg, #8b5cf6 0%, #6d28d9 55%, #4c1d95 100%);
+    --fg: #211344;
+    --muted: #5d5386;
+    --border: #7c3aed;
+    --soft: #ece6fb;
+    --inv-bg: #5b21b6;
+    --inv-fg: #f6f1ff;
+    --accent: #ca8a04;
+    --panel-bg: #faf8ff;
+    --radius: 8px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(76, 29, 149, 0.3);
+  }
+  [data-theme="royal"][data-mode="dark"] {
+    --bg: #12081f;
+    --bg-image: linear-gradient(160deg, #1e1136 0%, #3b1d6e 55%, #120a24 100%);
+    --fg: #ede9fe;
+    --muted: #a79bc9;
+    --border: #6d28d9;
+    --soft: #221436;
+    --inv-bg: #a78bfa;
+    --inv-fg: #150b26;
+    --accent: #facc15;
+    --panel-bg: rgba(20, 12, 34, 0.92);
+    --radius: 8px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+  }
+
+  [data-theme="candy"] {
+    --bg: #fff6fb;
+    --bg-image: linear-gradient(160deg, #ff8fd8 0%, #80d0ff 50%, #ffee9c 100%);
+    --fg: #2b1030;
+    --muted: #7a5280;
+    --border: #ff6fc0;
+    --soft: #ffe3f3;
+    --inv-bg: #ff5fb0;
+    --inv-fg: #ffffff;
+    --accent: #00b8d4;
+    --panel-bg: #fffafd;
+    --radius: 20px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(255, 111, 192, 0.3);
+  }
+  [data-theme="candy"][data-mode="dark"] {
+    --bg: #140a1a;
+    --bg-image: linear-gradient(160deg, #4a0e33 0%, #0d2a4a 55%, #1c0f33 100%);
+    --fg: #ffeefc;
+    --muted: #c39fd0;
+    --border: #ff6fc0;
+    --soft: #2a1330;
+    --inv-bg: #ff6fc0;
+    --inv-fg: #1a0a1e;
+    --accent: #22d3ee;
+    --panel-bg: rgba(26, 12, 32, 0.88);
+    --radius: 20px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="midnight"] {
+    --bg: #eef1f8;
+    --bg-image: linear-gradient(160deg, #3b82f6 0%, #4338ca 55%, #1e1b4b 100%);
+    --fg: #0f172a;
+    --muted: #46557a;
+    --border: #3b82f6;
+    --soft: #e0e7f5;
+    --inv-bg: #1d4ed8;
+    --inv-fg: #ffffff;
+    --accent: #1d4ed8;
+    --panel-bg: #f7f9ff;
+    --radius: 2px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(30, 58, 138, 0.3);
+  }
+  [data-theme="midnight"][data-mode="dark"] {
+    --bg: #060913;
+    --bg-image: linear-gradient(160deg, #020617 0%, #0b1224 55%, #0a0f1e 100%);
+    --fg: #e5ecff;
+    --muted: #8296c0;
+    --border: #3b82f6;
+    --soft: #101a30;
+    --inv-bg: #60a5fa;
+    --inv-fg: #060913;
+    --accent: #60a5fa;
+    --panel-bg: rgba(8, 13, 26, 0.92);
+    --radius: 2px;
+    --border-w: 2px;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', system-ui, sans-serif; }
   body {
     min-height: 100vh;
@@ -298,6 +453,24 @@
   }
   .theme-card .theme-act:hover { background: var(--inv-bg); color: var(--inv-fg); }
 
+  .hist-item {
+    display: flex; align-items: center; gap: 8px;
+    border: 1.5px solid var(--border); border-radius: calc(var(--radius) * 0.6);
+    padding: 7px 9px; margin-bottom: 6px; background: var(--panel-bg);
+  }
+  .hist-item:hover { background: var(--soft); }
+  .hist-meta { flex: 1; min-width: 0; cursor: pointer; }
+  .hist-name { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-sub { font-size: 0.65rem; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-time { font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
+  .hist-btn {
+    font-size: 0.6rem; padding: 4px 7px; border: 1.5px solid var(--border);
+    background: var(--panel-bg); color: var(--fg); cursor: pointer;
+    border-radius: calc(var(--radius) * 0.6); font-weight: 700; text-transform: uppercase;
+    font-family: inherit; white-space: nowrap;
+  }
+  .hist-btn:hover { background: var(--inv-bg); color: var(--inv-fg); }
+
   #raw-output { font-size: 0.7rem; white-space: pre-wrap; word-break: break-word; margin-top: 10px; max-height: 260px; overflow: auto; }
 
   @media (max-width: 520px) {
@@ -387,6 +560,7 @@
   <div class="empty" id="empty">No playlist yet — type a phrase and hit generate.</div>
 
   <div class="footer">
+    <button class="ghost" id="history-toggle">History ▸</button>
     <button class="ghost" id="themes-toggle">Themes ▸</button>
     <button class="ghost" id="theme-toggle">Dark / Light</button>
   </div>
@@ -401,6 +575,16 @@
     <div class="theme-grid" id="installed-themes"></div>
     <label style="margin-top:10px">Browse themes</label>
     <div class="theme-grid" id="available-themes"></div>
+  </div>
+
+  <div class="panel" id="history-panel" hidden style="margin-top:10px">
+    <div class="panel-toggle">
+      <span>History</span>
+      <span id="history-count"></span>
+    </div>
+    <p class="hint">Click an entry (or <b>Open</b>) to reload that phrase, settings and playlist. <b>Del</b> removes one entry. Saved in this browser only — newest 20 kept.</p>
+    <div id="history-list" style="margin-top:8px"></div>
+    <button class="ghost" id="history-clear" type="button" style="margin-top:4px">Clear all</button>
   </div>
 </div>
 
@@ -432,6 +616,11 @@
     themesPanel: document.getElementById('themes-panel'),
     installedThemes: document.getElementById('installed-themes'),
     availableThemes: document.getElementById('available-themes'),
+    historyToggle: document.getElementById('history-toggle'),
+    historyPanel: document.getElementById('history-panel'),
+    historyList: document.getElementById('history-list'),
+    historyCount: document.getElementById('history-count'),
+    historyClear: document.getElementById('history-clear'),
     rawPanel: document.getElementById('raw-panel'),
     rawOutput: document.getElementById('raw-output'),
   };
@@ -458,6 +647,21 @@
     { id: 'neon', name: 'Neon', desc: 'Cyber glow, magenta and cyan',
       light: { bg: '#f5f7ff', fg: '#111827', a: '#d946ef', accent: '#0891b2' },
       dark:  { bg: '#07060d', fg: '#f5f3ff', a: '#d946ef', accent: '#22d3ee' } },
+    { id: 'forest', name: 'Forest', desc: 'Woodland greens, calm and natural',
+      light: { bg: '#eef6ec', fg: '#10291a', a: '#2f7d4f', accent: '#2f9e58' },
+      dark:  { bg: '#0a1610', fg: '#e7f5ea', a: '#57d38c', accent: '#57d38c' } },
+    { id: 'sakura', name: 'Sakura', desc: 'Cherry blossom pinks',
+      light: { bg: '#fdf1f4', fg: '#3b1423', a: '#e05a86', accent: '#e05a86' },
+      dark:  { bg: '#1d0f16', fg: '#ffe9f0', a: '#ff9ec0', accent: '#ffa6c1' } },
+    { id: 'royal', name: 'Royal', desc: 'Deep purple with gold',
+      light: { bg: '#f4f1fb', fg: '#211344', a: '#7c3aed', accent: '#ca8a04' },
+      dark:  { bg: '#12081f', fg: '#ede9fe', a: '#a78bfa', accent: '#facc15' } },
+    { id: 'candy', name: 'Candy', desc: 'Playful pink, cyan and yellow',
+      light: { bg: '#fff6fb', fg: '#2b1030', a: '#ff6fc0', accent: '#00b8d4' },
+      dark:  { bg: '#140a1a', fg: '#ffeefc', a: '#ff6fc0', accent: '#22d3ee' } },
+    { id: 'midnight', name: 'Midnight', desc: 'Deep navy, sharp and minimal',
+      light: { bg: '#eef1f8', fg: '#0f172a', a: '#3b82f6', accent: '#1d4ed8' },
+      dark:  { bg: '#060913', fg: '#e5ecff', a: '#60a5fa', accent: '#60a5fa' } },
   ];
 
   let themeStore = { installed: ['monochrome'], active: 'monochrome' };
@@ -566,6 +770,143 @@
     els.themesPanel.hidden = !open;
     els.themesToggle.textContent = open ? 'Themes ▾' : 'Themes ▸';
     if (open) renderThemeCards();
+  });
+
+  const HISTORY_KEY = 'phrase-playlist-history-v1';
+  const HISTORY_MAX = 20;
+
+  function loadHistory() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) { return []; }
+  }
+
+  function writeHistory(list) {
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, HISTORY_MAX)));
+    } catch (e) {
+      setStatus('History could not be saved (browser storage full).', 'error');
+    }
+  }
+
+  function addToHistory(phrase, playlist) {
+    const entry = {
+      id: 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      ts: Date.now(),
+      phrase: phrase,
+      count: els.count.value,
+      era: els.era.value.trim(),
+      name: playlist.name || 'Your playlist',
+      description: playlist.description || '',
+      tracks: playlist.tracks,
+    };
+    const list = loadHistory();
+    const top = list[0];
+    if (top && top.phrase === entry.phrase && JSON.stringify(top.tracks) === JSON.stringify(entry.tracks)) {
+      top.ts = entry.ts;
+    } else {
+      list.unshift(entry);
+    }
+    writeHistory(list);
+    if (!els.historyPanel.hidden) renderHistory();
+  }
+
+  function formatTs(ts) {
+    try {
+      return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
+
+  function renderHistory() {
+    const list = loadHistory();
+    els.historyCount.textContent = list.length ? list.length + ' saved' : 'empty';
+    els.historyClear.hidden = !list.length;
+    els.historyList.innerHTML = '';
+
+    if (!list.length) {
+      const div = document.createElement('div');
+      div.className = 'empty';
+      div.textContent = 'No history yet — generate a playlist and it gets saved here.';
+      els.historyList.appendChild(div);
+      return;
+    }
+
+    list.forEach(entry => {
+      const item = document.createElement('div');
+      item.className = 'hist-item';
+
+      const meta = document.createElement('div');
+      meta.className = 'hist-meta';
+      const name = document.createElement('div');
+      name.className = 'hist-name';
+      name.textContent = entry.name || 'Your playlist';
+      const sub = document.createElement('div');
+      sub.className = 'hist-sub';
+      sub.textContent = (entry.phrase || '') + ' · ' + (entry.tracks || []).length + ' tracks';
+      const time = document.createElement('div');
+      time.className = 'hist-time';
+      time.textContent = formatTs(entry.ts);
+      meta.appendChild(name);
+      meta.appendChild(sub);
+      meta.appendChild(time);
+      meta.addEventListener('click', () => openHistoryEntry(entry.id));
+      item.appendChild(meta);
+
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'hist-btn';
+      open.textContent = 'Open';
+      open.addEventListener('click', () => openHistoryEntry(entry.id));
+      item.appendChild(open);
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'hist-btn';
+      del.textContent = 'Del';
+      del.addEventListener('click', () => {
+        writeHistory(loadHistory().filter(x => x.id !== entry.id));
+        renderHistory();
+        setStatus('Deleted one history entry.', 'ok');
+      });
+      item.appendChild(del);
+
+      els.historyList.appendChild(item);
+    });
+  }
+
+  function openHistoryEntry(id) {
+    const entry = loadHistory().find(x => x.id === id);
+    if (!entry) {
+      setStatus('That history entry no longer exists.', 'error');
+      renderHistory();
+      return;
+    }
+
+    els.phrase.value = entry.phrase || '';
+    if (entry.count && Array.from(els.count.options).some(o => o.value === String(entry.count))) {
+      els.count.value = String(entry.count);
+    }
+    if (typeof entry.era === 'string') els.era.value = entry.era;
+
+    renderPlaylist({ name: entry.name, description: entry.description, tracks: entry.tracks || [] });
+    setStatus('Loaded "' + (entry.name || 'playlist') + '" from history.', 'ok');
+    els.results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  els.historyToggle.addEventListener('click', () => {
+    const open = els.historyPanel.hidden;
+    els.historyPanel.hidden = !open;
+    els.historyToggle.textContent = open ? 'History ▾' : 'History ▸';
+    if (open) renderHistory();
+  });
+
+  els.historyClear.addEventListener('click', () => {
+    if (!loadHistory().length) return;
+    if (!window.confirm('Clear all history?')) return;
+    writeHistory([]);
+    renderHistory();
+    setStatus('History cleared.', 'ok');
   });
 
   function newKeyId() {
@@ -895,6 +1236,7 @@
 
         rotationCursor = (rotationCursor + i + 1) % keys.length;
         renderPlaylist(playlist);
+        addToHistory(phrase, playlist);
         setStatus('Playlist ready — ' + playlist.tracks.length + ' tracks via key ' + (i + 1) + '.', 'ok');
         lastError = null;
         return;

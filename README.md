@@ -14,6 +14,7 @@ Works with any OpenAI-compatible provider (including free ones), runs entirely o
 - [Features](#features)
 - [Setup](#setup)
 - [Themes](#themes)
+- [History](#history)
 - [Song previews](#song-previews)
 - [Use it on your iPhone](#use-it-on-your-iphone)
 - [Hosting it 24/7](#hosting-it-247)
@@ -47,7 +48,8 @@ The console prints the exact URL — normally `http://localhost:8000/playlist.ht
 - **Any OpenAI-compatible provider** — OpenAI, Groq, OpenRouter, Google Gemini, Together, Ollama, LM Studio, tokenharbor, and others (see [Setup](#setup)).
 - **Multiple API keys with failover** — keys are tried in order and the app rotates to the next one automatically on a bad key, rate limit, or server error.
 - **30-second previews** — a ▶ button on every track plays a clip, matched by title and artist so it never plays the wrong song (see [Song previews](#song-previews)).
-- **Installable themes** — Monochrome, Liquid Glass, Ocean, Sunset, and Neon, each in light and dark (see [Themes](#themes)).
+- **Installable themes** — 10 palettes: Monochrome, Liquid Glass, Ocean, Sunset, Neon, Forest, Sakura, Royal, Candy and Midnight, each in light and dark (see [Themes](#themes)).
+- **Result history** — every playlist you generate is saved in this browser; click any entry to reopen that phrase, those settings and those tracks (see [History](#history)).
 - **Works on your phone** — the server prints a LAN URL you can open on any device on the same Wi-Fi.
 - **Runs anywhere** — one Python file with no dependencies, or a Windows `.exe` (console or desktop app).
 - **Built to survive messy models** — a built-in CORS proxy for providers that block browsers, and a forgiving JSON parser that handles markdown fences, single quotes, unquoted keys, trailing commas, wrapper objects, and plain-text track lists.
@@ -91,8 +93,22 @@ Click **Themes ▸** in the footer to open the theme manager.
 | Ocean | Teal-to-navy gradient with deep sea blues |
 | Sunset | Orange-to-violet gradient in warm dusk colors |
 | Neon | Pastel light / near-black dark with magenta and cyan glow |
+| Forest | Woodland greens — calm and natural |
+| Sakura | Cherry blossom pinks |
+| Royal | Deep purple with gold accents |
+| Candy | Playful pink, cyan and yellow with rounded corners |
+| Midnight | Deep navy, sharp corners, minimal |
 
 Your installed themes and the active choice are saved in this browser (`localStorage`, key `phrase-playlist-themes-v1`). Nothing is sent to the server.
+
+## History
+
+Click **History ▸** in the footer to see every playlist you have generated.
+
+- Each entry shows the playlist title, the phrase, the track count and when it was made.
+- Click the entry (or **Open**) to reload it — the phrase, track count, era and all tracks come back, with their Spotify/YouTube links and previews.
+- **Del** removes a single entry, **Clear all** empties the list.
+- The newest 20 playlists are kept, in this browser only (`localStorage`, key `phrase-playlist-history-v1`).
 
 ## Song previews
 
