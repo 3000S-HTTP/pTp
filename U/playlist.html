@@ -321,6 +321,7 @@
     --shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   }
 
+  html, body { overflow-x: hidden; }
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Consolas', 'Segoe UI', system-ui, sans-serif; }
   body {
     min-height: 100vh;
@@ -330,15 +331,15 @@
     background-size: cover;
     color: var(--fg);
     display: flex; justify-content: center; align-items: flex-start;
-    padding: 18px 14px 40px;
+    padding: clamp(8px, 2vw, 18px) clamp(6px, 2vw, 14px) clamp(20px, 4vw, 40px);
   }
   .container {
     background: var(--panel-bg);
     border: var(--border-w) solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    max-width: 680px; width: 100%;
-    padding: 18px;
+    max-width: min(760px, calc(100vw - 16px)); width: 100%;
+    padding: clamp(12px, 2vw, 18px);
   }
   header { margin-bottom: 14px; }
   h1 { font-size: 1.15rem; letter-spacing: 0.5px; text-transform: uppercase; }
