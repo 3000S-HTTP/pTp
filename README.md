@@ -16,6 +16,7 @@ Works with any OpenAI-compatible provider (including free ones), runs entirely o
 - [Themes](#themes)
 - [History](#history)
 - [Song previews](#song-previews)
+- [Lyrics](#lyrics)
 - [Use it on your iPhone](#use-it-on-your-iphone)
 - [Hosting it 24/7](#hosting-it-247)
 - [Build the executables](#build-the-executables)
@@ -48,6 +49,7 @@ The console prints the exact URL — normally `http://localhost:8000/playlist.ht
 - **Any OpenAI-compatible provider** — OpenAI, Groq, OpenRouter, Google Gemini, Together, Ollama, LM Studio, tokenharbor, and others (see [Setup](#setup)).
 - **Multiple API keys with failover** — keys are tried in order and the app rotates to the next one automatically on a bad key, rate limit, or server error.
 - **30-second previews** — a ▶ button on every track plays a clip, matched by title and artist so it never plays the wrong song (see [Song previews](#song-previews)).
+- **Lyrics on demand** — a ♪ Lyrics button on every track expands the full lyrics inline, no API key (see [Lyrics](#lyrics)).
 - **Installable themes** — 10 palettes: Monochrome, Liquid Glass, Ocean, Sunset, Neon, Forest, Sakura, Royal, Candy and Midnight, each in light and dark (see [Themes](#themes)).
 - **Result history** — every playlist you generate is saved in this browser; click any entry to reopen that phrase, those settings and those tracks (see [History](#history)).
 - **Works on your phone** — the server prints a LAN URL you can open on any device on the same Wi-Fi.
@@ -119,6 +121,14 @@ Every track row has a **▶ Preview** button that plays a 30-second clip:
 3. One shared player: press again to pause, again to resume. Generating a new playlist stops playback.
 
 Each lookup is cached after the first click, so replaying is instant and costs no extra requests. Previews need an internet connection — the Spotify and YouTube links work regardless.
+
+## Lyrics
+
+Every track row also has a **♪ Lyrics** button that expands a panel right under the song.
+
+- It looks the track up on the public [lyrics.ovh](https://lyrics.ovh) API by artist and title — no API key, and it works straight from the browser.
+- Click again to collapse. Each lookup is cached, and long lyrics scroll inside the panel instead of stretching the page.
+- If the song is not in the database, the panel says *No lyrics found for this track* rather than showing a guess.
 
 ## Use it on your iPhone
 

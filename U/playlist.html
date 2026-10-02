@@ -414,16 +414,32 @@
   .track-links {
     display: flex; flex-direction: column; gap: 4px; align-items: stretch;
   }
-  .track-links a, .track-links button.preview {
+  .track-links a, .track-links button.preview, .track-links button.lyrics {
     font-size: 0.65rem; text-decoration: none; color: var(--fg);
     border: 1.5px solid var(--border); padding: 3px 8px; text-align: center;
     font-weight: 700; text-transform: uppercase; white-space: nowrap;
     background: var(--panel-bg); cursor: pointer; border-radius: calc(var(--radius) * 0.6);
     font-family: inherit;
   }
-  .track-links a:hover, .track-links button.preview:hover { background: var(--inv-bg); color: var(--inv-fg); }
-  .track-links button.preview.playing { background: var(--inv-bg); color: var(--inv-fg); }
+  .track-links a:hover, .track-links button.preview:hover, .track-links button.lyrics:hover { background: var(--inv-bg); color: var(--inv-fg); }
+  .track-links button.preview.playing, .track-links button.lyrics.active { background: var(--inv-bg); color: var(--inv-fg); }
   .track-links button.preview.loading { opacity: 0.6; cursor: progress; }
+  .track-lyrics {
+    grid-column: 1 / -1;
+    margin-top: 2px;
+    padding: 9px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: calc(var(--radius) * 0.6);
+    background: var(--soft);
+    color: var(--fg);
+    font-size: 0.72rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    max-height: 260px;
+    overflow: auto;
+  }
+  .track-lyrics .lyrics-state { color: var(--muted); font-style: italic; }
 
   .empty { text-align: center; color: var(--muted); font-size: 0.75rem; padding: 18px 10px; border: 1.5px dashed var(--border); border-radius: calc(var(--radius) * 0.6); }
 
@@ -476,7 +492,7 @@
 
   @media (max-width: 520px) {
     ul.tracks li { grid-template-columns: 20px 1fr; }
-    .track-links { grid-column: 2; flex-direction: row; }
+    .track-links { grid-column: 2; flex-direction: row; flex-wrap: wrap; }
   }
 </style>
 </head>
@@ -1431,6 +1447,69 @@
     if (previewBtn) setPreviewState(previewBtn, 'idle');
   }
 
+  const lyricsCache = new Map();
+
+  function cleanLyrics(text) {
+    if (!text) return '';
+    let out = String(text).replace(/\r\n/g, '\n').trim();
+    out = out.replace(/^\s*Paroles de la chanson[^\n]*\n?/i, '');
+    out = out.replace(/\n*\*{3,}\s*$/, '').trim();
+    return out;
+  }
+
+  async function fetchLyrics(track) {
+    if (!track.title || !track.artist) return null;
+    const url = 'https://api.lyrics.ovh/v1/' + encodeURIComponent(track.artist) + '/' + encodeURIComponent(track.title);
+    const res = await fetch(url);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return cleanLyrics(data.lyrics) || null;
+  }
+
+  function toggleLyrics(track, btn, li) {
+    const box = li.querySelector('.track-lyrics');
+    if (box) {
+      if (box.dataset.loading) return;
+      box.hidden = !box.hidden;
+      btn.classList.toggle('active', !box.hidden);
+      return;
+    }
+
+    const fresh = document.createElement('div');
+    fresh.className = 'track-lyrics';
+    fresh.dataset.loading = '1';
+    fresh.textContent = 'Loading lyrics...';
+    li.appendChild(fresh);
+
+    const key = (track.title + '|' + track.artist).toLowerCase();
+    (async () => {
+      let message = '';
+      try {
+        let lyrics = lyricsCache.get(key);
+        if (lyrics === undefined) {
+          lyrics = await fetchLyrics(track);
+          lyricsCache.set(key, lyrics);
+        }
+        if (lyrics) {
+          delete fresh.dataset.loading;
+          fresh.textContent = lyrics;
+          return;
+        }
+        message = 'No lyrics found for this track.';
+      } catch (e) {
+        message = 'Could not load lyrics: ' + (e && e.message ? e.message : e);
+      }
+      delete fresh.dataset.loading;
+      fresh.className = 'track-lyrics';
+      const span = document.createElement('span');
+      span.className = 'lyrics-state';
+      span.textContent = message;
+      fresh.textContent = '';
+      fresh.appendChild(span);
+    })();
+  }
+
   function renderPlaylist(playlist) {
     stopAllPreviews();
     lastPlaylist = playlist;
@@ -1472,6 +1551,13 @@
       preview.textContent = '▶ Preview';
       preview.addEventListener('click', () => togglePreview(track, preview));
       links.appendChild(preview);
+
+      const lyricsBtn = document.createElement('button');
+      lyricsBtn.type = 'button';
+      lyricsBtn.className = 'lyrics';
+      lyricsBtn.textContent = '♪ Lyrics';
+      lyricsBtn.addEventListener('click', () => toggleLyrics(track, lyricsBtn, li));
+      links.appendChild(lyricsBtn);
 
       const spotify = document.createElement('a');
       spotify.href = 'https://open.spotify.com/search/' + query;
